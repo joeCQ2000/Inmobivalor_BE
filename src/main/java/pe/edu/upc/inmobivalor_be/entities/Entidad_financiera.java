@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "entidad_financiera")
-public class EntidadFinanciera {
+public class Entidad_financiera {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id_entidad_financiera;
+    private int id_entidad;
 
-    @Column(name = "nombre", nullable = false, length = 50)
+    @Column(name = "nombre", nullable = false , length = 50 )
     private String nombre;
 
     @Column(name = "ruc", nullable = false, length = 150)
@@ -28,29 +28,30 @@ public class EntidadFinanciera {
     private boolean estado;
 
     @ManyToOne
-    @JoinColumn(name = "id_entidad_financiera")
-    private EntidadFinanciera entidad_financiera;
+    @JoinColumn(name = "id_tasa")
+    private Tasa_interes tasa_interes;
 
-    public EntidadFinanciera() {
+    public Entidad_financiera() {
 
     }
 
-    public EntidadFinanciera(int id_entidad_financiera, String nombre, String ruc, String direccion, String telefono, String correo, EntidadFinanciera entidad_financiera) {
-        this.id_entidad_financiera = id_entidad_financiera;
+    public Entidad_financiera(int id_entidad, String nombre, String direccion, String ruc, String telefono, String correo, boolean estado, Tasa_interes tasa_interes) {
+        this.id_entidad = id_entidad;
         this.nombre = nombre;
-        this.ruc = ruc;
         this.direccion = direccion;
+        this.ruc = ruc;
         this.telefono = telefono;
         this.correo = correo;
-        this.entidad_financiera = entidad_financiera;
+        this.estado = estado;
+        this.tasa_interes = tasa_interes;
     }
 
-    public int getId_entidad_financiera() {
-        return id_entidad_financiera;
+    public int getId_entidad() {
+        return id_entidad;
     }
 
-    public void setId_entidad_financiera(int id_entidad_financiera) {
-        this.id_entidad_financiera = id_entidad_financiera;
+    public void setId_entidad(int id_entidad) {
+        this.id_entidad = id_entidad;
     }
 
     public String getNombre() {
@@ -93,11 +94,19 @@ public class EntidadFinanciera {
         this.correo = correo;
     }
 
-    public EntidadFinanciera getEntidad_financiera() {
-        return entidad_financiera;
+    public boolean isEstado() {
+        return estado;
     }
 
-    public void setEntidad_financiera(EntidadFinanciera entidad_financiera) {
-        this.entidad_financiera = entidad_financiera;
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
+    public Tasa_interes getTasa_interes() {
+        return tasa_interes;
+    }
+
+    public void setTasa_interes(Tasa_interes tasa_interes) {
+        this.tasa_interes = tasa_interes;
     }
 }
