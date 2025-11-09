@@ -1,28 +1,13 @@
-package pe.edu.upc.inmobivalor_be.entities;
+package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
 
-@Entity
-@Table(name = "rol")
-public class Rol {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class RolDTO {
     private int id_rol;
 
-    @Column(name = "nombre", nullable = false, length = 50)
     private String nombre;
 
-    @Column(name = "estado", nullable = false, length = 50)
     private boolean estado;
-    public Rol() {
-
-    }
-
-    public Rol(int id_rol, String nombre, boolean estado) {
-        this.id_rol = id_rol;
-        this.nombre = nombre;
-        this.estado = estado;
-    }
 
     public int getId_rol() {
         return id_rol;

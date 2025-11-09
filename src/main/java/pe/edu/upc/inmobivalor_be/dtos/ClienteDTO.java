@@ -1,51 +1,27 @@
-package pe.edu.upc.inmobivalor_be.entities;
+package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.*;
-@Entity
-@Table(name = "cliente")
-public class Cliente {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+import jakarta.persistence.Column;
+import pe.edu.upc.inmobivalor_be.entities.Usuario;
+
+public class ClienteDTO {
     private int id_cliente;
 
-    @Column(name = "nombres", nullable = false, length = 100)
-    private String nombres;
 
-    @Column(name = "apellidos", nullable = false, length = 100)
+    private String nombres;
     private String apellidos;
 
-    @Column(name = "correo", nullable = false, length = 50)
     private String correo;
 
-    @Column(name = "telefono", nullable = false, length = 9)
+
     private String telefono;
 
-    @Column(name = "dni", nullable = false, length = 8)
     private String dni;
 
-    @Column(name = "es_activo", nullable = false)
     private boolean es_activo;
 
-    @Column(name = "aplica_bono", nullable = false)
     private boolean aplica_bono;
 
-    @ManyToOne
-    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
-    public Cliente() {}
-
-    public Cliente(int id_cliente, String nombres, String apellidos, String telefono, String correo, String dni, boolean es_activo, boolean aplica_bono, Usuario usuario) {
-        this.id_cliente = id_cliente;
-        this.nombres = nombres;
-        this.apellidos = apellidos;
-        this.telefono = telefono;
-        this.correo = correo;
-
-        this.dni = dni;
-        this.es_activo = es_activo;
-        this.aplica_bono = aplica_bono;
-        this.usuario = usuario;
-    }
 
     public int getId_cliente() {
         return id_cliente;
