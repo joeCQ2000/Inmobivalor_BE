@@ -16,14 +16,14 @@ public class ClienteController {
     @Autowired
     private IClienteService clienteService;
 
-    @GetMapping
+    @GetMapping("/registrar")
     public List<Cliente> listarClientes() {
         return clienteService.listarClientes().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
             return modelMapper.map(x, Cliente.class);
         }).collect(Collectors.toList());
     }
-    @PostMapping
+    @PostMapping("/listar")
     public void registrar (@RequestBody ClienteDTO clienteDTO) {
         ModelMapper m = new ModelMapper();
         Cliente cliente = m.map(clienteDTO, Cliente.class);

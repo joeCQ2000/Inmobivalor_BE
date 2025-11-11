@@ -4,11 +4,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.RolDTO;
-import pe.edu.upc.inmobivalor_be.dtos.UsuarioDTO;
 import pe.edu.upc.inmobivalor_be.entities.Rol;
-import pe.edu.upc.inmobivalor_be.entities.Usuario;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.IRolService;
-import pe.edu.upc.inmobivalor_be.serviceinterfaces.IUsuarioService;
 
 import java.util.List;
 import java.util.stream.Collectors;
