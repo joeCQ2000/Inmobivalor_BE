@@ -16,13 +16,13 @@ public class MonedaController {
     @Autowired
     private IMonedaService monedaService;
 
-    @GetMapping("/registrar")public List<Moneda> listarmoneda() {
+    @GetMapping("/listar")public List<Moneda> listarmoneda() {
         return monedaService.listarmonedas().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
             return modelMapper.map(x, Moneda.class);
         }).collect(Collectors.toList());
     }
-    @PostMapping("/listar")
+    @PostMapping("/registrar")
     public void registrar (@RequestBody MonedaDTO monedaDTO) {
         ModelMapper m = new ModelMapper();
         Moneda moneda = m.map(monedaDTO, Moneda.class);

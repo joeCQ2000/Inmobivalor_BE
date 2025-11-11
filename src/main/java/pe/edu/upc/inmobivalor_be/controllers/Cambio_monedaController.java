@@ -16,7 +16,7 @@ public class Cambio_monedaController {
     @Autowired
     private ICambio_monedaService cambio_monedaService;
 
-    @GetMapping("/registrar")public List<Cambio_moneda> listarcambiomoneda() {
+    @GetMapping("/listar")public List<Cambio_moneda> listarcambiomoneda() {
         return cambio_monedaService.listarcambiomoneda().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
             return modelMapper.map(x, Cambio_moneda.class);
