@@ -22,7 +22,7 @@ public class MonedaController {
             return modelMapper.map(x, Moneda.class);
         }).collect(Collectors.toList());
     }
-    @PostMapping("/registrar")
+    @PostMapping("/listar")
     public void registrar (@RequestBody MonedaDTO monedaDTO) {
         ModelMapper m = new ModelMapper();
         Moneda moneda = m.map(monedaDTO, Moneda.class);
