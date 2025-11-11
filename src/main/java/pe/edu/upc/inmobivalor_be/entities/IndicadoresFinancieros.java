@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
+// Prueba
 @Entity
 @Table(name = "indicadores_financieros")
 public class IndicadoresFinancieros {
