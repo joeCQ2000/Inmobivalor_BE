@@ -1,4 +1,7 @@
 package pe.edu.upc.inmobivalor_be.repositories;
 
-public interface ITasa_interesRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import pe.edu.upc.inmobivalor_be.entities.Tasa_interes;
+
+public interface ITasa_interesRepository extends JpaRepository<Tasa_interes, Integer> {
 }
