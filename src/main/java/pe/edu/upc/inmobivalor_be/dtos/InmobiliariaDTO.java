@@ -1,55 +1,17 @@
-package pe.edu.upc.inmobivalor_be.entities;
+package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.*;
+import pe.edu.upc.inmobivalor_be.entities.Usuario;
 
-@Entity
-@Table(name = "inmobiliaria")
-public class Inmobiliaria {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class InmobiliariaDTO {
     private int id_inmobiliaria;
-
-    @Column(name = "ubicacion", nullable = false, length = 100)
     private String ubicacion;
-
-    @Column(name = "imagen")
     private Long imagen;
-
-    @Column(name = "area", nullable = false, length = 100)
     private String area;
-
-    @Column(name = "precio", nullable = false)
     private int precio;
-
-    @Column(name = "descripcion", nullable = false, length = 500)
     private String descripcion;
-
-    @Column(name = "situacion_inmobiliaria", nullable = false, length = 50)
     private String situacion_inmobiliaria;
-
-    @Column(name = "estado", nullable = false)
     private boolean estado;
-
-    @ManyToOne
-    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
-
-    public Inmobiliaria() {}
-
-    public Inmobiliaria(int id_inmobiliaria, String ubicacion, Long imagen, String area, int precio,
-                        String descripcion, String situacion_inmobiliaria,
-                        boolean estado, Usuario usuario) {
-        this.id_inmobiliaria = id_inmobiliaria;
-        this.ubicacion = ubicacion;
-        this.imagen = imagen;
-        this.area = area;
-        this.precio = precio;
-        this.descripcion = descripcion;
-        this.situacion_inmobiliaria = situacion_inmobiliaria;
-        this.estado = estado;
-        this.usuario = usuario;
-    }
 
     public int getId_inmobiliaria() {
         return id_inmobiliaria;
