@@ -2,26 +2,34 @@ package pe.edu.upc.inmobivalor_be.entities;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
+
 @Entity
-@Table(name = "rol")
-public class Rol {
+@Table(name = "rol", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "nombreRol"})})
+public class Rol implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id_rol;
 
-    @Column(name = "nombre", nullable = false, length = 50)
-    private String nombre;
+    @Column(name = "nombreRol", nullable = false, length = 50)
+    private String nombreRol;
 
     @Column(name = "estado", nullable = false, length = 50)
     private boolean estado;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private Usuario user;
+
     public Rol() {
 
     }
 
-    public Rol(int id_rol, String nombre, boolean estado) {
+    public Rol(int id_rol, String nombreRol, boolean estado, Usuario user) {
         this.id_rol = id_rol;
-        this.nombre = nombre;
+        this.nombreRol = nombreRol;
         this.estado = estado;
+        this.user = user;
     }
 
     public int getId_rol() {
@@ -32,12 +40,12 @@ public class Rol {
         this.id_rol = id_rol;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getNombreRol() {
+        return nombreRol;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setNombreRol(String nombreRol) {
+        this.nombreRol = nombreRol;
     }
 
     public boolean isEstado() {
@@ -46,5 +54,13 @@ public class Rol {
 
     public void setEstado(boolean estado) {
         this.estado = estado;
+    }
+
+    public Usuario getUser() {
+        return user;
+    }
+
+    public void setUser(Usuario user) {
+        this.user = user;
     }
 }
