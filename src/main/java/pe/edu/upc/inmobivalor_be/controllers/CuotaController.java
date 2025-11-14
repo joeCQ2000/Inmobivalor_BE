@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/cuota")
 public class CuotaController {
-// Commit Ejemplo 2
     @Autowired
     private ICuotaService cuotaService;
 
