@@ -3,11 +3,8 @@ package pe.edu.upc.inmobivalor_be.controllers;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pe.edu.upc.inmobivalor_be.dtos.ClienteDTO;
 import pe.edu.upc.inmobivalor_be.dtos.UsuarioDTO;
-import pe.edu.upc.inmobivalor_be.entities.Cliente;
 import pe.edu.upc.inmobivalor_be.entities.Usuario;
-import pe.edu.upc.inmobivalor_be.serviceinterfaces.IClienteService;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.IUsuarioService;
 
 import java.util.List;

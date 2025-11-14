@@ -1,42 +1,17 @@
-package pe.edu.upc.inmobivalor_be.entities;
+package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.*;
+import pe.edu.upc.inmobivalor_be.entities.CreditoPrestamo;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "indicadores_financieros")
-public class IndicadoresFinancieros {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class IndicadoresFinancierosDTO {
     private int id_indicador;
-
     private double van;
     private double tir;
-
-    @Column(name = "fecha_calculo", nullable = false)
     private LocalDate fecha_calculo;
-
     private int tcea;
     private int trea;
-
-    @ManyToOne
-    @JoinColumn(name = "id_credito")
     private CreditoPrestamo id_credito;
-
-    public IndicadoresFinancieros() {
-
-    }
-
-    public IndicadoresFinancieros(int id_indicador, double van, double tir, LocalDate fecha_calculo, int tcea, int trea, CreditoPrestamo id_credito) {
-        this.id_indicador = id_indicador;
-        this.van = van;
-        this.tir = tir;
-        this.fecha_calculo = fecha_calculo;
-        this.tcea = tcea;
-        this.trea = trea;
-        this.id_credito = id_credito;
-    }
 
     public int getId_indicador() {
         return id_indicador;

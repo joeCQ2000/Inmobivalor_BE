@@ -1,73 +1,23 @@
-package pe.edu.upc.inmobivalor_be.entities;
+package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.*;
+import pe.edu.upc.inmobivalor_be.entities.*;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "credito_prestamo")
-//Hola probando
-public class CreditoPrestamo {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class CreditoPrestamoDTO {
     private int id_credito;
-
-    @Column(name = "plazo_meses", nullable = false, length = 50)
     private String plazo_meses;
-
-    @Column(name = "tipo_gracia", nullable = false, length = 50)
     private String tipo_gracia;
-
     private int monto_bono;
-
-    @Column(name = "fecha_inicio", nullable = false)
     private LocalDate fecha_inicio;
-
-    @Column(name = "fecha_fin", nullable = false)
     private LocalDate fecha_fin;
-
-    @Column(name = "capitalizacion", length = 20, nullable = false)
     private String capitalizacion;
-
     private boolean estado;
-
     private int meses_gracia;
-
-    @ManyToOne
-    @JoinColumn(name = "id_entidad")
     private Entidad_financiera id_entidad;
-
-    @ManyToOne
-    @JoinColumn(name = "id_cliente")
     private Cliente id_cliente;
-
-    @ManyToOne
-    @JoinColumn(name = "id_inmobiliaria")
     private Inmobiliaria id_inmobiliaria;
-
-    @ManyToOne
-    @JoinColumn(name = "id_moneda")
     private Moneda id_moneda;
-
-    public CreditoPrestamo() {
-
-    }
-
-    public CreditoPrestamo(int id_credito, String plazo_meses, String tipo_gracia, int monto_bono, LocalDate fecha_inicio, LocalDate fecha_fin, String capitalizacion, boolean estado, int meses_gracia, Entidad_financiera id_entidad, Cliente id_cliente, Inmobiliaria id_inmobiliaria, Moneda id_moneda) {
-        this.id_credito = id_credito;
-        this.plazo_meses = plazo_meses;
-        this.tipo_gracia = tipo_gracia;
-        this.monto_bono = monto_bono;
-        this.fecha_inicio = fecha_inicio;
-        this.fecha_fin = fecha_fin;
-        this.capitalizacion = capitalizacion;
-        this.estado = estado;
-        this.meses_gracia = meses_gracia;
-        this.id_entidad = id_entidad;
-        this.id_cliente = id_cliente;
-        this.id_inmobiliaria = id_inmobiliaria;
-        this.id_moneda = id_moneda;
-    }
 
     public int getId_credito() {
         return id_credito;
