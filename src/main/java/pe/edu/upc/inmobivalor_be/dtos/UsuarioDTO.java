@@ -1,12 +1,17 @@
 package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import pe.edu.upc.inmobivalor_be.entities.Rol;
+
+import java.util.List;
 
 public class UsuarioDTO {
     private int id_usuario;
+
+    private String contrasenha;
+
+    private String username;
 
     private String nombres;
 
@@ -14,15 +19,13 @@ public class UsuarioDTO {
 
     private String correo;
 
-    private String contrasenha;
-
     private String dni;
 
     private boolean estado;
 
     private String telefono;
 
-    private Rol rol;
+    private List<Rol> roles;
 
     public int getId_usuario() {
         return id_usuario;
@@ -32,12 +35,20 @@ public class UsuarioDTO {
         this.id_usuario = id_usuario;
     }
 
-    public String getApellidos() {
-        return apellidos;
+    public String getContrasenha() {
+        return contrasenha;
     }
 
-    public void setApellidos(String apellidos) {
-        this.apellidos = apellidos;
+    public void setContrasenha(String contrasenha) {
+        this.contrasenha = contrasenha;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getNombres() {
@@ -48,20 +59,20 @@ public class UsuarioDTO {
         this.nombres = nombres;
     }
 
+    public String getApellidos() {
+        return apellidos;
+    }
+
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
+    }
+
     public String getCorreo() {
         return correo;
     }
 
     public void setCorreo(String correo) {
         this.correo = correo;
-    }
-
-    public String getContrasenha() {
-        return contrasenha;
-    }
-
-    public void setContrasenha(String contrasenha) {
-        this.contrasenha = contrasenha;
     }
 
     public String getDni() {
@@ -88,11 +99,11 @@ public class UsuarioDTO {
         this.telefono = telefono;
     }
 
-    public Rol getRol() {
-        return rol;
+    public List<Rol> getRoles() {
+        return roles;
     }
 
-    public void setRol(Rol rol) {
-        this.rol = rol;
+    public void setRoles(List<Rol> roles) {
+        this.roles = roles;
     }
 }
