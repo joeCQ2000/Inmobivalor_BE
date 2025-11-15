@@ -2,6 +2,9 @@ package pe.edu.upc.inmobivalor_be.entities;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "tasa_interes")
 public class Tasa_interes {
@@ -19,6 +22,10 @@ public class Tasa_interes {
     private boolean estado;
 
     public Tasa_interes() {}
+
+    @ManyToMany(mappedBy = "tasas")
+    private Set<Entidad_financiera> entidades = new HashSet<>();
+
 
     public Tasa_interes(int id_tasa, String tipo_tasa, double tasa_pct, boolean estado) {
         this.id_tasa = id_tasa;

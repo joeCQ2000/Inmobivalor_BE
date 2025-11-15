@@ -1,15 +1,18 @@
 package pe.edu.upc.inmobivalor_be.entities;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "entidad_financiera")
 public class Entidad_financiera {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id_entidad;
 
-    @Column(name = "nombre", nullable = false , length = 50 )
+    @Column(name = "nombre", nullable = false, length = 50)
     private String nombre;
 
     @Column(name = "ruc", nullable = false, length = 150)
@@ -27,24 +30,16 @@ public class Entidad_financiera {
     @Column(name = "estado", nullable = false)
     private boolean estado;
 
-    @ManyToOne
-    @JoinColumn(name = "id_tasa")
-    private Tasa_interes tasa_interes;
+    // Relación ManyToMany con Tasa_interes
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "entidad_tasa",
+            joinColumns = @JoinColumn(name = "id_entidad"),
+            inverseJoinColumns = @JoinColumn(name = "id_tasa")
+    )
+    private Set<Tasa_interes> tasas = new HashSet<>();
 
-    public Entidad_financiera() {
-
-    }
-
-    public Entidad_financiera(int id_entidad, String nombre, String direccion, String ruc, String telefono, String correo, boolean estado, Tasa_interes tasa_interes) {
-        this.id_entidad = id_entidad;
-        this.nombre = nombre;
-        this.direccion = direccion;
-        this.ruc = ruc;
-        this.telefono = telefono;
-        this.correo = correo;
-        this.estado = estado;
-        this.tasa_interes = tasa_interes;
-    }
+    public Entidad_financiera() {}
 
     public int getId_entidad() {
         return id_entidad;
@@ -102,11 +97,19 @@ public class Entidad_financiera {
         this.estado = estado;
     }
 
-    public Tasa_interes getTasa_interes() {
-        return tasa_interes;
+    public Set<Tasa_interes> getTasas() {
+        return tasas;
     }
 
-    public void setTasa_interes(Tasa_interes tasa_interes) {
-        this.tasa_interes = tasa_interes;
+    public void setTasas(Set<Tasa_interes> tasas) {
+        this.tasas = tasas;
+    }
+
+    public void addTasa(Tasa_interes tasa) {
+        this.tasas.add(tasa);
+    }
+
+    public void removeTasa(Tasa_interes tasa) {
+        this.tasas.remove(tasa);
     }
 }

@@ -1,9 +1,8 @@
 package pe.edu.upc.inmobivalor_be.dtos;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import pe.edu.upc.inmobivalor_be.entities.Tasa_interes;
+
+import java.util.Set;
 
 public class Entidades_financieraDTO {
     private int id_entidad;
@@ -17,7 +16,8 @@ public class Entidades_financieraDTO {
 
     private boolean estado;
 
-    private Tasa_interes tasa_interes;
+    private Set<Tasa_interes> tasas;
+
 
     public int getId_entidad() {
         return id_entidad;
@@ -75,11 +75,11 @@ public class Entidades_financieraDTO {
         this.estado = estado;
     }
 
-    public Tasa_interes getTasa_interes() {
-        return tasa_interes;
+    public Set<Tasa_interes> getTasas() {
+        return tasas;
     }
 
-    public void setTasa_interes(Tasa_interes tasa_interes) {
-        this.tasa_interes = tasa_interes;
+    public void setTasas(Set<Tasa_interes> tasas) {
+        this.tasas = tasas;
     }
 }
