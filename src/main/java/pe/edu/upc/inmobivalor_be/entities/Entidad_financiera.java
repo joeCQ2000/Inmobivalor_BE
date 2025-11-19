@@ -30,14 +30,7 @@ public class Entidad_financiera {
     @Column(name = "estado", nullable = false)
     private boolean estado;
 
-    // Relación ManyToMany con Tasa_interes
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "entidad_tasa",
-            joinColumns = @JoinColumn(name = "id_entidad"),
-            inverseJoinColumns = @JoinColumn(name = "id_tasa")
-    )
-    private Set<Tasa_interes> tasas = new HashSet<>();
+
 
     public Entidad_financiera() {}
 
@@ -97,19 +90,4 @@ public class Entidad_financiera {
         this.estado = estado;
     }
 
-    public Set<Tasa_interes> getTasas() {
-        return tasas;
-    }
-
-    public void setTasas(Set<Tasa_interes> tasas) {
-        this.tasas = tasas;
-    }
-
-    public void addTasa(Tasa_interes tasa) {
-        this.tasas.add(tasa);
-    }
-
-    public void removeTasa(Tasa_interes tasa) {
-        this.tasas.remove(tasa);
-    }
 }

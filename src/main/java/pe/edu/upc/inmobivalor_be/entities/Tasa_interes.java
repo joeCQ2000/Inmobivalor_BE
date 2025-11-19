@@ -23,10 +23,6 @@ public class Tasa_interes {
 
     public Tasa_interes() {}
 
-    @ManyToMany(mappedBy = "tasas")
-    private Set<Entidad_financiera> entidades = new HashSet<>();
-
-
     public Tasa_interes(int id_tasa, String tipo_tasa, double tasa_pct, boolean estado) {
         this.id_tasa = id_tasa;
         this.tipo_tasa = tipo_tasa;
