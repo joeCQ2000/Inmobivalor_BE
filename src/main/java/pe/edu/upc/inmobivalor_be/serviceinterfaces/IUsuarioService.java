@@ -8,5 +8,8 @@ import java.util.List;
 public interface IUsuarioService {
         public List<Usuario> listarUsuario();
         public void insert(Usuario usuario);
+        public void update(Usuario usuario);
+        public Usuario searchid(int id);
+
 }
 

@@ -22,4 +22,12 @@ public class UsuarioServiceImplement implements IUsuarioService {
     public void insert(Usuario usuario) {
         usuarioRepository.save(usuario);
     }
+    @Override
+    public void update(Usuario usuario) {
+        usuarioRepository.save(usuario);
+    }
+    @Override
+    public Usuario searchid(int id ) {
+        return usuarioRepository.findById(id).orElse(new Usuario());
+    }
 }
