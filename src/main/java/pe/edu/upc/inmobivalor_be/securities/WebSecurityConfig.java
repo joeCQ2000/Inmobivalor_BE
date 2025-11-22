@@ -60,9 +60,10 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers(("/login")).permitAll()
-                        .requestMatchers(("/usuarios")).permitAll()
-                        .requestMatchers(("/roles")).permitAll()
-                        .requestMatchers(("/usuarios/exists/**")).permitAll()
+                        .requestMatchers(("/usuario/listar")).permitAll()
+                        .requestMatchers(("/usuario/registrar")).permitAll()
+                        .requestMatchers(("/rol/listar")).permitAll()
+                        .requestMatchers(("/usuario/exists/**")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())

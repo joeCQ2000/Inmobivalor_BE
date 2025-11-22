@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.UsuarioDTO;
 import pe.edu.upc.inmobivalor_be.entities.Usuario;
@@ -28,6 +29,19 @@ public class UsuarioController {
         ModelMapper m = new ModelMapper();
         Usuario usuario = m.map(usuarioDTO, Usuario.class);
         usuarioService.insert(usuario);
+    }
+
+    @PutMapping("/actualizar")
+    public void actualizar(@RequestBody UsuarioDTO dto) {
+        ModelMapper m = new ModelMapper();
+        Usuario usuario = m.map(dto, Usuario.class);
+        usuarioService.update(usuario);
+    }
+    @GetMapping("/{id}")
+    public UsuarioDTO listarId(@PathVariable("id") Integer id) {
+        ModelMapper m = new ModelMapper();
+        UsuarioDTO dto = m.map(usuarioService.searchid(id), UsuarioDTO.class);
+        return dto;
     }
 
 
