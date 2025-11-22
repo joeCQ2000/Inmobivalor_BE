@@ -7,6 +7,11 @@ public class DatosCronogramaDTO {
     private int frecuencia_pago;
     private int numero_dias_por_anho;
 
+    // Enlazar con el formulario:
+    private double tea;
+    private String tipo_gracia;
+    private int meses_gracia;
+
     // ... de los costes/gastos iniciales
     private double costes_notariales;
     private double costes_registrales;
@@ -93,6 +98,31 @@ public class DatosCronogramaDTO {
     public void setNumero_dias_por_anho(int numero_dias_por_anho) {
         this.numero_dias_por_anho = numero_dias_por_anho;
     }
+
+    public double getTea() {
+        return tea;
+    }
+
+    public void setTea(double tea) {
+        this.tea = tea;
+    }
+
+    public String getTipo_gracia() {
+        return tipo_gracia;
+    }
+
+    public void setTipo_gracia(String tipo_gracia) {
+        this.tipo_gracia = tipo_gracia;
+    }
+
+    public int getMeses_gracia() {
+        return meses_gracia;
+    }
+
+    public void setMeses_gracia(int meses_gracia) {
+        this.meses_gracia = meses_gracia;
+    }
+
 
     public int getFrecuencia_pago() {
         return frecuencia_pago;
