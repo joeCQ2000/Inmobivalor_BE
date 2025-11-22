@@ -8,23 +8,21 @@ import pe.edu.upc.inmobivalor_be.entities.CreditoPrestamo;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.ICreditoPrestamoService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/credito")
 public class CreditoPrestamoController {
+
     @Autowired
     private ICreditoPrestamoService creditoPrestamoService;
 
-    @GetMapping("/registrar")
+    @GetMapping("/listar")
     public List<CreditoPrestamo> listarCreditoPrestamo() {
-        return creditoPrestamoService.listarCreditoPrestamo().stream().map(x -> {
-            ModelMapper modelMapper = new ModelMapper();
-            return modelMapper.map(x, CreditoPrestamo.class);
-        }).collect(Collectors.toList());
+        return creditoPrestamoService.listarCreditoPrestamo();
     }
-    @PostMapping("/listar")
-    public void registrar (@RequestBody CreditoPrestamoDTO creditoPrestamoDTO) {
+
+    @PostMapping("/registrar")
+    public void registrar(@RequestBody CreditoPrestamoDTO creditoPrestamoDTO) {
         ModelMapper m = new ModelMapper();
         CreditoPrestamo creditoPrestamo = m.map(creditoPrestamoDTO, CreditoPrestamo.class);
         creditoPrestamoService.insert(creditoPrestamo);
