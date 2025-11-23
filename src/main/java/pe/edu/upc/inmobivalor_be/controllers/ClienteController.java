@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.ClienteDTO;
 import pe.edu.upc.inmobivalor_be.entities.Cliente;
@@ -10,6 +11,7 @@ import pe.edu.upc.inmobivalor_be.serviceinterfaces.IClienteService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @RestController
 @RequestMapping("/cliente")
 public class ClienteController {
@@ -17,6 +19,7 @@ public class ClienteController {
     private IClienteService clienteService;
 
     @GetMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Cliente> listarClientes() {
         return clienteService.listarClientes().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -24,6 +27,7 @@ public class ClienteController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
     public void registrar (@RequestBody ClienteDTO clienteDTO) {
         ModelMapper m = new ModelMapper();
         Cliente cliente = m.map(clienteDTO, Cliente.class);

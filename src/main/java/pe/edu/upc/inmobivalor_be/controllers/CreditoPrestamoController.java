@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.CreditoPrestamoDTO;
 import pe.edu.upc.inmobivalor_be.entities.CreditoPrestamo;
@@ -17,6 +18,7 @@ public class CreditoPrestamoController {
     private ICreditoPrestamoService creditoPrestamoService;
 
     @GetMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<CreditoPrestamo> listarCreditoPrestamo() {
         return creditoPrestamoService.listarCreditoPrestamo().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -24,6 +26,7 @@ public class CreditoPrestamoController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody CreditoPrestamoDTO creditoPrestamoDTO) {
         ModelMapper m = new ModelMapper();
         CreditoPrestamo creditoPrestamo = m.map(creditoPrestamoDTO, CreditoPrestamo.class);
