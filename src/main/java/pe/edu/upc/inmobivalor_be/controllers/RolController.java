@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.RolDTO;
 import pe.edu.upc.inmobivalor_be.entities.Rol;
@@ -11,12 +12,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/rol")
+@RequestMapping("/roles")
 public class RolController {
     @Autowired
     private IRolService rolService;
 
     @GetMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
     public List<Rol> listarRol() {
         return rolService.listarol().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -24,6 +26,7 @@ public class RolController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
     public void registrar (@RequestBody RolDTO rolDTO) {
         ModelMapper m = new ModelMapper();
         Rol rol = m.map(rolDTO, Rol.class);
