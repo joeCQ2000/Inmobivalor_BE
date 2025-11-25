@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.Entidades_financieraDTO;
 import pe.edu.upc.inmobivalor_be.dtos.Tasa_interesDTO;
@@ -20,6 +21,7 @@ public class Entidad_financieraController {
     private IEntidad_financieraService entidad_financieraService;
 
     @GetMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Entidad_financiera> listarentidades() {
         return entidad_financieraService.listarentidades().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -27,6 +29,7 @@ public class Entidad_financieraController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody Entidades_financieraDTO entidades_financieraDTO) {
         ModelMapper m = new ModelMapper();
         Entidad_financiera entidad_financiera = m.map(entidades_financieraDTO, Entidad_financiera.class);

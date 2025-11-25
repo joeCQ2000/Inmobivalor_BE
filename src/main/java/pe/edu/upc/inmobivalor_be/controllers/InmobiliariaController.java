@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.dtos.InmobiliariaDTO;
 import pe.edu.upc.inmobivalor_be.entities.Inmobiliaria;
@@ -17,6 +18,7 @@ public class InmobiliariaController {
     private IInmobiliariaService iInmobiliariaService;
 
     @GetMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Inmobiliaria> listarInmobiliaria() {
         return iInmobiliariaService.listarInmobiliarias().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -24,6 +26,7 @@ public class InmobiliariaController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody InmobiliariaDTO inmobiliariaDTO) {
         ModelMapper m = new ModelMapper();
         Inmobiliaria inmobiliaria = m.map(inmobiliariaDTO, Inmobiliaria.class);

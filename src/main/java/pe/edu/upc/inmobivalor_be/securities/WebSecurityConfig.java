@@ -19,11 +19,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfig {
-
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
@@ -54,25 +54,27 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        //Desde Spring Boot 3.1+
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-                        // 🔓 TODO PERMITIDO (solo desarrollo)
+                        .requestMatchers(AUTH_WHITELIST).permitAll()
+                        .requestMatchers(("/login")).permitAll()
+                        .requestMatchers(("/usuarios")).permitAll()
+                        .requestMatchers(("/roles")).permitAll()
+                        .requestMatchers(("/usuarios/exists/**")).permitAll()
                         .anyRequest().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(Customizer.withDefaults());
-
-        // ❌ DESACTIVA EL FILTRO JWT MIENTRAS PRUEBAS
-        // httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
+        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 
-
     private static final String[] AUTH_WHITELIST = {
+
             "/api/v1/auth/**",
             "/v2/api-docs",
             "/v3/api-docs",

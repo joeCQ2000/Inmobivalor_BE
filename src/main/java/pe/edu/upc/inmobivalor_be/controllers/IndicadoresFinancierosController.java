@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.inmobivalor_be.entities.IndicadoresFinancieros;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.IIndicadoresFinancierosService;
@@ -16,6 +17,7 @@ public class IndicadoresFinancierosController {
     private IIndicadoresFinancierosService indicadoresFinancierosService;
 
     @GetMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<IndicadoresFinancieros> listarCreditoPrestamo() {
         return indicadoresFinancierosService.listarIndicadoresFinancieros().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -23,6 +25,7 @@ public class IndicadoresFinancierosController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody IndicadoresFinancieros indicadoresFinancierosDTO) {
         ModelMapper m = new ModelMapper();
         IndicadoresFinancieros indicadoresFinancieros = m.map(indicadoresFinancierosDTO, IndicadoresFinancieros.class);
