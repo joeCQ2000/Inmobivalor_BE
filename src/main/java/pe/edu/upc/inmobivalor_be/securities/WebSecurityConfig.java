@@ -63,7 +63,7 @@ public class WebSecurityConfig {
                         .requestMatchers(("/usuarios")).permitAll()
                         .requestMatchers(("/roles")).permitAll()
                         .requestMatchers(("/usuarios/exists/**")).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
