@@ -38,8 +38,8 @@ public class Usuario implements Serializable {
     @Column(name = "telefono", nullable = false, length = 9)
     private String telefono;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "id_usuario")
     private List<Rol> roles;
 
     public Usuario() {}

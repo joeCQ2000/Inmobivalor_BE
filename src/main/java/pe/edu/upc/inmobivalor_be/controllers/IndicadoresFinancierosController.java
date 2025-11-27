@@ -16,7 +16,7 @@ public class IndicadoresFinancierosController {
     @Autowired
     private IIndicadoresFinancierosService indicadoresFinancierosService;
 
-    @GetMapping("/registrar")
+    @GetMapping("/listar")
     @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<IndicadoresFinancieros> listarCreditoPrestamo() {
         return indicadoresFinancierosService.listarIndicadoresFinancieros().stream().map(x -> {
@@ -24,7 +24,7 @@ public class IndicadoresFinancierosController {
             return modelMapper.map(x, IndicadoresFinancieros.class);
         }).collect(Collectors.toList());
     }
-    @PostMapping("/listar")
+    @PostMapping("/registrar")
     @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody IndicadoresFinancieros indicadoresFinancierosDTO) {
         ModelMapper m = new ModelMapper();
