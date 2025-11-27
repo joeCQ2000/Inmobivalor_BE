@@ -18,6 +18,7 @@ public class MonedaController {
     private IMonedaService monedaService;
 
     @GetMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Moneda> listarmoneda() {
         return monedaService.listarmonedas().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
