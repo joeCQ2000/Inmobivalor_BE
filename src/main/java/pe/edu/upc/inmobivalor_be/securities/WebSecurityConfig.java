@@ -60,10 +60,11 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers(("/login")).permitAll()
+                        .requestMatchers(("/login/verify-otp")).permitAll()
                         .requestMatchers(("/usuarios")).permitAll()
                         .requestMatchers(("/roles")).permitAll()
                         .requestMatchers(("/usuarios/exists/**")).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -88,6 +89,7 @@ public class WebSecurityConfig {
             "/webjars/**",
             "/swagger-ui.html",
             "/login",
+            "/login/verify-otp",
             "media/**",
             "/users/**",
             "/cities/**",
