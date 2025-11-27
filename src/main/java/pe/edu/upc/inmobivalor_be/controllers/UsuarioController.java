@@ -34,5 +34,18 @@ public class UsuarioController {
         usuarioService.insert(usuario);
     }
 
+    @PutMapping("/actualizar")
+    public void actualizar(@RequestBody UsuarioDTO dto) {
+        ModelMapper m = new ModelMapper();
+        Usuario usuario = m.map(dto, Usuario.class);
+        usuarioService.update(usuario);
+    }
+    @GetMapping("/{id}")
+    public UsuarioDTO listarId(@PathVariable("id") Integer id) {
+        ModelMapper m = new ModelMapper();
+        UsuarioDTO dto = m.map(usuarioService.searchid(id), UsuarioDTO.class);
+        return dto;
+    }
+
 
 }
