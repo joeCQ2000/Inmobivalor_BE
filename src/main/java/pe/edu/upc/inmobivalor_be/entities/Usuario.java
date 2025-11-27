@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -38,22 +39,35 @@ public class Usuario implements Serializable {
     @Column(name = "telefono", nullable = false, length = 9)
     private String telefono;
 
+    @Column(name= "otp_code")
+    private String otpCode;
+
+    @Column(name= "otp_expiry")
+    private LocalDateTime otpExpiry;
+
+    @Column(name="otp_required")
+    private Boolean otpRequired = false;
+
+    @JsonIgnore
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private List<Rol> roles;
 
     public Usuario() {}
 
-    public Usuario(int id_usuario, String username, String nombres, String apellidos, String correo, String contrasenha, String dni, boolean estado, String telefono, List<Rol> roles) {
+    public Usuario(int id_usuario, String contrasenha, String username, String nombres, String apellidos, String correo, String dni, boolean estado, String telefono, String otpCode, LocalDateTime otpExpiry, Boolean otpRequired, List<Rol> roles) {
         this.id_usuario = id_usuario;
+        this.contrasenha = contrasenha;
         this.username = username;
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.correo = correo;
-        this.contrasenha = contrasenha;
         this.dni = dni;
         this.estado = estado;
         this.telefono = telefono;
+        this.otpCode = otpCode;
+        this.otpExpiry = otpExpiry;
+        this.otpRequired = otpRequired;
         this.roles = roles;
     }
 
@@ -135,5 +149,33 @@ public class Usuario implements Serializable {
 
     public void setRoles(List<Rol> roles) {
         this.roles = roles;
+    }
+
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
+    }
+
+    public LocalDateTime getOtpExpiry() {
+        return otpExpiry;
+    }
+
+    public void setOtpExpiry(LocalDateTime otpExpiry) {
+        this.otpExpiry = otpExpiry;
+    }
+
+    public Boolean getOtpRequired() {
+        return otpRequired;
+    }
+
+    public void setOtpRequired(Boolean otpRequired) {
+        this.otpRequired = otpRequired;
     }
 }
