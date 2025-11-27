@@ -13,12 +13,34 @@ import java.util.List;
 public class MonedaServiceImplement implements IMonedaService {
     @Autowired
     private IMonedaRepository monedaRepository;
+    
     @Override
     public List<Moneda> listarmonedas(){
         return monedaRepository.findAll();
     }
+    
     @Override
     public void insert (Moneda moneda) {
         monedaRepository.save(moneda);
+    }
+    
+    @Override
+    public void update(Moneda moneda) {
+        monedaRepository.save(moneda);
+    }
+    
+    @Override
+    public void delete(int id) {
+        // Eliminación lógica: cambia el estado a false en lugar de eliminar
+        Moneda moneda = monedaRepository.findById(id).orElse(null);
+        if (moneda != null) {
+            moneda.setEstado(false);
+            monedaRepository.save(moneda);
+        }
+    }
+    
+    @Override
+    public Moneda findById(int id) {
+        return monedaRepository.findById(id).orElse(null);
     }
 }

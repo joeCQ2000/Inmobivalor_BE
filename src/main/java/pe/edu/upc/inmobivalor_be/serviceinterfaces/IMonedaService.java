@@ -6,4 +6,7 @@ import java.util.List;
 public interface IMonedaService {
     public List<Moneda> listarmonedas();
     public void insert(Moneda moneda);
+    public void update(Moneda moneda);
+    public void delete(int id); // Eliminación lógica
+    public Moneda findById(int id);
 }
