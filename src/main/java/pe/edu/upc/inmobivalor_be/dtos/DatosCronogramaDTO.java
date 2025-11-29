@@ -8,7 +8,6 @@ public class DatosCronogramaDTO {
     private int numero_dias_por_anho;
 
     // Enlazar con el formulario:
-    private double tea;
     private String tipo_gracia;
     private int meses_gracia;
 
@@ -19,7 +18,7 @@ public class DatosCronogramaDTO {
     private double comision_estudio;
     private double comision_activacion;
 
-    // ... de los costes/gastos periodicos
+    // ... de los costes/gastos periódicos
     private double comision_periodica;
     private double portes;
     private double gastos_administracion;
@@ -42,6 +41,29 @@ public class DatosCronogramaDTO {
     private double total_seguro_riesgo;
     private double total_comisiones_periodicas;
     private double total_portes_y_gastos_adm;
+
+    private int entidadId;   // id_entidad de entidad_financiera
+
+    // NUEVO: id del crédito para jalar datos de CreditoPrestamo
+    private int idCredito;
+
+    // getters / setters
+
+    public int getEntidadId() {
+        return entidadId;
+    }
+
+    public void setEntidadId(int entidadId) {
+        this.entidadId = entidadId;
+    }
+
+    public int getIdCredito() {
+        return idCredito;
+    }
+
+    public void setIdCredito(int idCredito) {
+        this.idCredito = idCredito;
+    }
 
     public double getComision_periodica() {
         return comision_periodica;
@@ -99,14 +121,6 @@ public class DatosCronogramaDTO {
         this.numero_dias_por_anho = numero_dias_por_anho;
     }
 
-    public double getTea() {
-        return tea;
-    }
-
-    public void setTea(double tea) {
-        this.tea = tea;
-    }
-
     public String getTipo_gracia() {
         return tipo_gracia;
     }
@@ -122,7 +136,6 @@ public class DatosCronogramaDTO {
     public void setMeses_gracia(int meses_gracia) {
         this.meses_gracia = meses_gracia;
     }
-
 
     public int getFrecuencia_pago() {
         return frecuencia_pago;

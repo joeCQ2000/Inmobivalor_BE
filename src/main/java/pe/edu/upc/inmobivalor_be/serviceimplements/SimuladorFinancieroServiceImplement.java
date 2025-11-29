@@ -1,7 +1,14 @@
 package pe.edu.upc.inmobivalor_be.serviceimplements;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pe.edu.upc.inmobivalor_be.dtos.*;
+import pe.edu.upc.inmobivalor_be.dtos.CronogramaDTO;
+import pe.edu.upc.inmobivalor_be.dtos.DatosCronogramaDTO;
+import pe.edu.upc.inmobivalor_be.dtos.SimulacionFrancesResponseDTO;
+import pe.edu.upc.inmobivalor_be.entities.CreditoPrestamo;
+import pe.edu.upc.inmobivalor_be.entities.Entidad_tasa;
+import pe.edu.upc.inmobivalor_be.repositories.ICreditoPrestamoRepository;
+import pe.edu.upc.inmobivalor_be.repositories.IEntidad_tasaRepository;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.ISimuladorFinancieroService;
 
 import java.util.ArrayList;
@@ -10,295 +17,312 @@ import java.util.List;
 @Service
 public class SimuladorFinancieroServiceImplement implements ISimuladorFinancieroService {
 
-    /**
-     * SIMULACIÓN FRANCÉS (UN SOLO PLAN DE PAGO)
-     */
+    @Autowired
+    private IEntidad_tasaRepository entidadTasaRepository;
+
+    @Autowired
+    private ICreditoPrestamoRepository creditoPrestamoRepository;
+
     @Override
     public SimulacionFrancesResponseDTO simularFrances(DatosCronogramaDTO datos) {
-        return buildSimulacionFrances(datos);
-    }
 
-    /**
-     * SIMULACIÓN FRANCÉS PARA VARIOS PLANES DE PAGO
-     * (puedes llamar este método desde el Controller para recibir un JSON con un array de planes).
-     */
-    @Override
-    public List<SimulacionFrancesResponseDTO> simularFrancesBatch(List<DatosCronogramaDTO> listaDatos) {
-        List<SimulacionFrancesResponseDTO> resultados = new ArrayList<>();
-        if (listaDatos == null || listaDatos.isEmpty()) {
-            return resultados;
+        // ========= 0. CRÉDITO: traer datos desde CreditoPrestamo =========
+        CreditoPrestamo credito = creditoPrestamoRepository
+                .findById(datos.getIdCredito())
+                .orElseThrow(() ->
+                        new RuntimeException("No se encontró el crédito con el id: " + datos.getIdCredito()));
+
+        String capitalizacion = credito.getCapitalizacion();  // diaria, semanal, mensual, anual...
+        String tipoGracia = credito.getTipo_gracia();         // total, parcial, ninguno...
+        int mesesGracia = credito.getMeses_gracia();          // Nº meses de gracia
+
+        int plazoMeses;
+        try {
+            plazoMeses = Integer.parseInt(credito.getPlazo_meses().trim());
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("El campo plazo_meses del crédito debe ser numérico (en meses). Valor actual: "
+                    + credito.getPlazo_meses());
         }
 
-        for (DatosCronogramaDTO datos : listaDatos) {
-            resultados.add(buildSimulacionFrances(datos));
+        // Convertimos plazo en años (redondeando hacia arriba si no es múltiplo de 12)
+        int numeroAnhos = plazoMeses / 12;
+        if (plazoMeses % 12 != 0) {
+            numeroAnhos++;
         }
-        return resultados;
-    }
 
-    /**
-     * Lógica central de cálculo (la que tenías en simularFrances),
-     * aislada en un método privado reutilizable.
-     */
-    private SimulacionFrancesResponseDTO buildSimulacionFrances(DatosCronogramaDTO datos) {
+        // Impactamos estos valores en el DTO para que también viajen al front
+        datos.setNumero_anhos(numeroAnhos);
+        datos.setTipo_gracia(tipoGracia);
+        datos.setMeses_gracia(mesesGracia);
 
-        // ===== 1. LECTURA DE ENTRADAS =====
-        double precio = datos.getPrecio_venta_activo();           // D4
-        double pctCuotaInicial = datos.getPorcentaje_cuota_inicial(); // D5 (0.2 por 20%)
-        int numeroAnhos = datos.getNumero_anhos();                // D6
-        double cuotasPorAnho = datos.getFrecuencia_pago();        // N° cuotas por año (4, 12, etc.)
-        double diasPorAnho = datos.getNumero_dias_por_anho();     // 360
-        double diasPorPeriodo = diasPorAnho / cuotasPorAnho;      // p.e. 90 si es trimestral
+        // ========= 1. DATOS INGRESADOS =========
+        double precio = datos.getPrecio_venta_activo();               // Precio Venta Activo
+        double pctCuotaInicial = datos.getPorcentaje_cuota_inicial(); // % Cuota Inicial (ej. 0.20)
+        int diasPorAnho = datos.getNumero_dias_por_anho();            // Nº días por año (típico 360)
 
-        // Costos iniciales
-        double costesNotariales    = datos.getCostes_notariales();
-        double costesRegistrales   = datos.getCostes_registrales();
-        double tasacion            = datos.getTasacion();
-        double comisionEstudio     = datos.getComision_estudio();
-        double comisionActivacion  = datos.getComision_activacion();
+        double costesNotariales = datos.getCostes_notariales();
+        double costesRegistrales = datos.getCostes_registrales();
+        double tasacion = datos.getTasacion();
+        double comisionEstudio = datos.getComision_estudio();
+        double comisionActivacion = datos.getComision_activacion();
 
-        // Costos periódicos
-        double comisionPeriodica   = datos.getComision_periodica();
-        double portes              = datos.getPortes();
-        double gastosAdm           = datos.getGastos_administracion();
+        double comisionPeriodica = datos.getComision_periodica();
+        double portes = datos.getPortes();
+        double gastosAdmin = datos.getGastos_administracion();
 
-        // Seguros
-        double pctSegDesMensual    = datos.getPorcentaje_seguro_desgravamen(); // ej. 0.00045
-        double pctSegRiesgoAnual   = datos.getPorcentaje_seguro_riesgo();      // ej. 0.004
+        double pctSegDesMensual = datos.getPorcentaje_seguro_desgravamen(); // ej. 0.00045
+        double pctSegRiesgoAnual = datos.getPorcentaje_seguro_riesgo();     // ej. 0.004 (0.40%)
+        double tasaDescuentoAnual = datos.getTasa_descuento();              // 0.27
 
-        // Tasas
-        double tasaDescuentoAnual  = datos.getTasa_descuento();   // TEA de descuento
-        double tea                 = datos.getTea();              // TEA del préstamo
+        // ========= 2. DERIVADOS BÁSICOS =========
+        // Saldo a financiar = PV - PV * %CuotaInicial
+        double saldoFinanciar = precio - (precio * pctCuotaInicial);
 
-        // Gracia
-        int mesesGracia            = datos.getMeses_gracia();
-        String tipoGracia          = datos.getTipo_gracia();      // "SIN", "TOTAL", "PARCIAL"
-
-        // ===== 2. DERIVADOS BÁSICOS =====
-
-        // Saldo a financiar y monto del préstamo
-        double saldoFinanciar = precio * (1.0 - pctCuotaInicial);
-        double montoPrestamo  = saldoFinanciar
+        // Monto del préstamo = Saldo a financiar + costes iniciales
+        double montoPrestamo = saldoFinanciar
                 + costesNotariales
                 + costesRegistrales
                 + tasacion
                 + comisionEstudio
                 + comisionActivacion;
 
-        int nCuotasPorAnho = (int) Math.round(cuotasPorAnho);
-        int nTotalCuotas   = nCuotasPorAnho * numeroAnhos;
-
         datos.setSaldo_a_financiar(saldoFinanciar);
         datos.setMonto_prestamo(montoPrestamo);
+
+        // ========= 3. TASA DESDE BD (Entidad_tasa -> Tasa_interes) =========
+        int entidadId = datos.getEntidadId();
+
+        List<Entidad_tasa> entidadTasas = entidadTasaRepository.findActivasByEntidad(entidadId);
+        if (entidadTasas.isEmpty()) {
+            throw new RuntimeException("No se encontró ninguna tasa activa para la entidad " + entidadId);
+        }
+
+        // Por ahora tomamos la primera tasa activa de esa entidad
+        Entidad_tasa entidadTasa = entidadTasas.get(0);
+        String tipoTasa = entidadTasa.getTasa().getTipo_tasa();   // "TEA", "TNA", "TN", etc.
+
+        // tasa_pct puede venir como 11 (11%) o 0.11; normalizamos a decimal
+        double tasaBruta = entidadTasa.getTasa().getTasa_pct();
+        double tasaAnual = (tasaBruta > 1.0) ? tasaBruta / 100.0 : tasaBruta; // 11 -> 0.11, 0.11 -> 0.11
+
+        boolean esNominal = tipoTasa != null &&
+                (tipoTasa.equalsIgnoreCase("TN")
+                        || tipoTasa.equalsIgnoreCase("TNA")
+                        || tipoTasa.toUpperCase().startsWith("TN"));
+
+        boolean esEfectiva = tipoTasa != null &&
+                (tipoTasa.equalsIgnoreCase("TEA")
+                        || tipoTasa.toUpperCase().startsWith("TE"));
+
+        // ========= 3.1 FRECUENCIA DE PAGO =========
+        // Regla: capitalización SOLO aplica si la tasa es nominal.
+        //        Si la tasa es efectiva, ignorar capitalización y usar frecuenciaPago = 360 por defecto.
+        int frecuenciaPago; // días por periodo de pago
+
+        if (esNominal) {
+            // Capitalización -> días por periodo
+            if ("diaria".equalsIgnoreCase(capitalizacion)) {
+                frecuenciaPago = 1;       // 1 día
+            } else if ("semanal".equalsIgnoreCase(capitalizacion)) {
+                frecuenciaPago = 7;       // 7 días
+            } else if ("mensual".equalsIgnoreCase(capitalizacion)) {
+                frecuenciaPago = 30;      // 30 días
+            } else if ("anual".equalsIgnoreCase(capitalizacion)) {
+                frecuenciaPago = 360;     // 360 días
+            } else {
+                throw new IllegalArgumentException("Capitalización no soportada para tasa nominal: " + capitalizacion);
+            }
+        } else if (esEfectiva) {
+            // Para TEA se ignora la capitalización.
+            // Por requisito: si no viene nada, tomar 360 por defecto.
+            int frecuenciaDesdeFront = datos.getFrecuencia_pago();
+            frecuenciaPago = (frecuenciaDesdeFront > 0) ? frecuenciaDesdeFront : 360;
+        } else {
+            throw new IllegalArgumentException("Tipo de tasa de interés no soportado: " + tipoTasa);
+        }
+
+        // Guardamos en el DTO la frecuencia de pago efectiva usada
+        datos.setFrecuencia_pago(frecuenciaPago);
+
+        // Nº cuotas por año = días por año / días por periodo
+        int nCuotasPorAnho = diasPorAnho / frecuenciaPago;
+
+        // Nº total de cuotas
+        int nTotalCuotas = numeroAnhos * nCuotasPorAnho;
+
+        double diasPorPeriodo = frecuenciaPago;
+
         datos.setNumero_cuotas_por_anho(nCuotasPorAnho);
         datos.setNumero_total_cuotas(nTotalCuotas);
 
-        // Tasa periódica efectiva del préstamo
-        double tasaPeriodica = Math.pow(1.0 + tea, diasPorPeriodo / diasPorAnho) - 1.0;
+        // ========= 3.2 CÁLCULO DE TASAS PERIÓDICAS =========
+        double tea;
+        double tasaPeriodica;
 
-        // % seguro desgravamen por período
+        if (esEfectiva) {
+            // TEA conocida -> tasa periódica según días del periodo
+            tea = tasaAnual;
+            tasaPeriodica = Math.pow(1.0 + tea, diasPorPeriodo / (double) diasPorAnho) - 1.0;
+        } else {
+            // Tasa nominal anual j: aproximación estándar simple
+            double nPeriodosAnho = (double) nCuotasPorAnho;
+            tasaPeriodica = tasaAnual / nPeriodosAnho;
+            tea = Math.pow(1.0 + tasaPeriodica, nPeriodosAnho) - 1.0;
+        }
+
+        // ========= 4. SEGUROS Y DESCUENTO POR PERIODO =========
+        // % Seguro desgravamen periodo = %SegDesMensual / 30 * díasPorPeriodo
         double pctSegDesPeriodo = pctSegDesMensual / 30.0 * diasPorPeriodo;
 
-        // Seguro de riesgo por período
+        // Seguro riesgo = %SeguroRiesgo * Precio / NºCuotasPorAño
         double seguroRiesgoPeriodo = pctSegRiesgoAnual * precio / nCuotasPorAnho;
 
-        // Tasa de descuento periódica (para VAN)
-        double tasaDescPeriodo = Math.pow(1.0 + tasaDescuentoAnual, diasPorPeriodo / diasPorAnho) - 1.0;
+        // (por si luego calculas VAN/TIR)
+        double tasaDescPeriodo = Math.pow(1.0 + tasaDescuentoAnual, diasPorPeriodo / (double) diasPorAnho) - 1.0;
 
-        // ===== 3. SALDO DESPUÉS DE GRACIA PARA OBTENER CUOTA FRANCESA =====
-
-        double saldoTmp = montoPrestamo;
-
-        for (int t = 1; t <= mesesGracia && t <= nTotalCuotas; t++) {
-            double interes = saldoTmp * tasaPeriodica;
-
-            if ("TOTAL".equalsIgnoreCase(tipoGracia)) {
-                // Se capitalizan los intereses
-                saldoTmp += interes;
-            } else if ("PARCIAL".equalsIgnoreCase(tipoGracia)) {
-                // Solo se paga el interés, el saldo no cambia
-            } else {
-                // SIN gracia -> se rompe el bucle de gracia
-                break;
-            }
-        }
-
-        int cuotasRestantes = nTotalCuotas - Math.min(mesesGracia, nTotalCuotas);
-        double cuotaBase = 0.0; // cuota "pura" (sin seguro desgravamen)
-        if (cuotasRestantes > 0) {
-            cuotaBase = frenchPayment(saldoTmp, tasaPeriodica, cuotasRestantes);
-        }
-
-        // ===== 4. CONSTRUIR CRONOGRAMA =====
-
+        // ========= 5. CRONOGRAMA MÉTODO FRANCÉS =========
         List<CronogramaDTO> cronograma = new ArrayList<>();
+
         double saldo = montoPrestamo;
 
+        // Acumuladores para totales
         double totalIntereses = 0.0;
-        double totalAmortizacion = 0.0;
+        double totalAmort = 0.0;
         double totalSegDes = 0.0;
         double totalSegRiesgo = 0.0;
         double totalComisiones = 0.0;
-        double totalPortesYGastos = 0.0;
+        double totalPortesGastos = 0.0;
 
-        double[] flujos = new double[nTotalCuotas + 1];
-        flujos[0] = montoPrestamo; // Entrada del préstamo en t=0
+        // 5.1. PERÍODO DE GRACIA TOTAL (capitaliza SOLO intereses)
+        int inicioCuotaRegular = 1;
+        if ("total".equalsIgnoreCase(tipoGracia) && mesesGracia > 0) {
 
-        for (int t = 1; t <= nTotalCuotas; t++) {
+            for (int i = 1; i <= mesesGracia; i++) {
+                CronogramaDTO c = new CronogramaDTO();
+                c.setNumero_cuota(i);
+                c.setSaldo_inicial(saldo);
+
+                double interes = saldo * tasaPeriodica;
+                double seguroDes = pctSegDesPeriodo * saldo;
+                double seguroRiesgo = seguroRiesgoPeriodo;
+
+                // En gracia total NO se paga cuota ni amortización;
+                // el saldo final = saldo inicial + interes (capitalización)
+                double saldoFinal = saldo + interes;
+
+                c.setInteres(interes);
+                c.setAmortizacion(0.0);
+                c.setCuota_incluye_seguro_desgravamen(0.0);
+                c.setSaldo_final(saldoFinal);
+                c.setComision(comisionPeriodica);
+                c.setPortes(portes);
+                c.setGastos_administracion(gastosAdmin);
+                c.setSeguro_desgravamen(seguroDes);
+                c.setSeguro_riesgo(seguroRiesgo);
+                c.setTea(tea);
+                c.setTasa_periodica(tasaPeriodica);
+                c.setPeriodo_gracia("Total");
+
+                // Acumular totales
+                totalIntereses += interes;
+                totalSegDes += seguroDes;
+                totalSegRiesgo += seguroRiesgo;
+                totalComisiones += comisionPeriodica;
+                totalPortesGastos += (portes + gastosAdmin);
+
+                cronograma.add(c);
+
+                // actualizar saldo para el siguiente periodo de gracia
+                saldo = saldoFinal;
+            }
+
+            // Después de gracia total, las cuotas francesas se calculan
+            // con el saldo YA capitalizado y sólo con las cuotas restantes
+            inicioCuotaRegular = mesesGracia + 1;
+        }
+
+        int cuotasRestantes = nTotalCuotas - (inicioCuotaRegular - 1);
+        if (cuotasRestantes <= 0) {
+            throw new RuntimeException("No quedan cuotas después del período de gracia.");
+        }
+
+        // Cuota francesa para las cuotas restantes
+        double cuota = (saldo * tasaPeriodica) /
+                (1 - Math.pow(1 + tasaPeriodica, -cuotasRestantes));
+
+        // 5.2. CUOTAS REGULARES (sin gracia)
+        for (int i = inicioCuotaRegular; i <= nTotalCuotas; i++) {
             CronogramaDTO c = new CronogramaDTO();
+            c.setNumero_cuota(i);
+            c.setSaldo_inicial(saldo);
 
-            c.setNumero_cuota(t);
+            double interes = saldo * tasaPeriodica;
+            double amortizacion = cuota - interes;
+            double seguroDes = pctSegDesPeriodo * saldo;  // usa saldo inicial
+            double seguroRiesgo = seguroRiesgoPeriodo;
+
+            saldo -= amortizacion;
+            if (saldo < 0) {
+                saldo = 0;
+            }
+
+            c.setInteres(interes);
+            c.setAmortizacion(amortizacion);
+            c.setCuota_incluye_seguro_desgravamen(cuota);
+            c.setSaldo_final(saldo);
+            c.setComision(comisionPeriodica);
+            c.setPortes(portes);
+            c.setGastos_administracion(gastosAdmin);
+            c.setSeguro_desgravamen(seguroDes);
+            c.setSeguro_riesgo(seguroRiesgo);
             c.setTea(tea);
             c.setTasa_periodica(tasaPeriodica);
-            c.setIa(0.0);
-            c.setIp(0.0);
+            c.setPeriodo_gracia("Ninguno");
 
-            String pg;
-            if (t <= mesesGracia && !"SIN".equalsIgnoreCase(tipoGracia)) {
-                pg = "TOTAL".equalsIgnoreCase(tipoGracia) ? "T" : "P";
-            } else {
-                pg = "S";
-            }
-            c.setPeriodo_gracia(pg);
-
-            double saldoInicial = saldo;
-            double saldoIndexado = saldoInicial; // sin indexación
-            double interes = saldoInicial * tasaPeriodica;
-
-            double segDes = saldoIndexado * pctSegDesPeriodo;
-            double segRiesgo = seguroRiesgoPeriodo;
-            double comisionPer = comisionPeriodica;
-            double portesPer = portes;
-            double gastosPer = gastosAdm;
-
-            double amort = 0.0;
-            double cuotaIncSegDes = 0.0; // "Cuota (inc Seg Des)"
-
-            if ("T".equals(pg)) {
-                // Gracia total: no se paga cuota ni amortiza, se capitaliza interés
-                amort = 0.0;
-                cuotaIncSegDes = 0.0;
-                saldo = saldoInicial + interes;
-            } else if ("P".equals(pg)) {
-                // Gracia parcial: solo se paga interés
-                amort = 0.0;
-                cuotaIncSegDes = interes; // solo interés
-                saldo = saldoInicial;
-            } else {
-                // Sin gracia: cuota francesa (constante) a partir de aquí
-                double cuotaPura = cuotaBase;    // capital + interés
-                amort = cuotaPura - interes;     // parte que amortiza capital
-                cuotaIncSegDes = cuotaPura + segDes;
-                saldo = saldoInicial - amort;
-            }
-
-            // Acumulados (valores positivos)
+            // Acumular totales
             totalIntereses += interes;
-            totalAmortizacion += amort;
-            totalSegDes += segDes;
-            totalSegRiesgo += segRiesgo;
-            totalComisiones += comisionPer;
-            totalPortesYGastos += (portesPer + gastosPer);
-
-            // Flujo de caja del período (salida => negativo para el cliente)
-            double pagoPeriodo;
-            if ("T".equals(pg)) {
-                // En gracia total: solo seguros + comisiones + portes + gastos
-                pagoPeriodo = segDes + segRiesgo + comisionPer + portesPer + gastosPer;
-            } else if ("P".equals(pg)) {
-                // en P: interés (cuotaIncSegDes) + seguros y comisiones
-                pagoPeriodo = cuotaIncSegDes + segDes + segRiesgo + comisionPer + portesPer + gastosPer;
-            } else {
-                // en S: cuota (inc Seg Des) + seguro riesgo + comisiones
-                pagoPeriodo = cuotaIncSegDes + segRiesgo + comisionPer + portesPer + gastosPer;
-            }
-            double flujo = -pagoPeriodo;  // salida de dinero
-            flujos[t] = flujo;
-
-            // Llenado del DTO con signo "contable" (egresos en negativo)
-            c.setSaldo_inicial(saldoInicial);
-            c.setSaldo_inicial_indexado(saldoIndexado);
-            c.setInteres(-interes);
-            c.setCuota_incluye_seguro_desgravamen(-cuotaIncSegDes);
-            c.setAmortizacion(-amort);
-            c.setPrepago(0.0); // no manejamos prepago aún
-            c.setSeguro_desgravamen(-segDes);
-            c.setSeguro_riesgo(-segRiesgo);
-            c.setComision(-comisionPer);
-            c.setPortes(-portesPer);
-            c.setGastos_administracion(-gastosPer);
-            c.setSaldo_final(saldo);
-            c.setFlujo(flujo);
+            totalAmort += amortizacion;
+            totalSegDes += seguroDes;
+            totalSegRiesgo += seguroRiesgo;
+            totalComisiones += comisionPeriodica;
+            totalPortesGastos += (portes + gastosAdmin);
 
             cronograma.add(c);
         }
 
-        // ===== 5. TOTALES E INDICADORES =====
-
+        // ========= 6. GUARDAR TOTALES EN DATOS =========
         datos.setTotal_intereses(totalIntereses);
-        datos.setTotal_amortizacion_capital(totalAmortizacion);
+        datos.setTotal_amortizacion_capital(totalAmort);
         datos.setTotal_seguro_desgravamen(totalSegDes);
         datos.setTotal_seguro_riesgo(totalSegRiesgo);
         datos.setTotal_comisiones_periodicas(totalComisiones);
-        datos.setTotal_portes_y_gastos_adm(totalPortesYGastos);
+        datos.setTotal_portes_y_gastos_adm(totalPortesGastos);
 
-        IndicadoresFinancierosDTO ind = new IndicadoresFinancierosDTO();
+        System.out.println("Tasa periódica    : " + tasaPeriodica);
+        System.out.println("TEA equivalente   : " + tea);
+        System.out.println("Frecuencia pago(d): " + frecuenciaPago);
+        System.out.println("Cuotas/año        : " + nCuotasPorAnho);
+        System.out.println("Total de cuotas   : " + nTotalCuotas);
+        System.out.println("=======================================\n");
 
-        // VAN con tasa de descuento periódica
-        double van = npv(tasaDescPeriodo, flujos);
-        ind.setVan(van);
 
-        // IRR periódica y TCEA
-        double tirPeriodo = irr(flujos);
-        ind.setTir(tirPeriodo);
 
-        double tcea = Math.pow(1.0 + tirPeriodo, nCuotasPorAnho) - 1.0;
-        ind.setTcea((int) Math.round(tcea * 100)); // en %
+        // ========= 7. RESPUESTA =========
+        SimulacionFrancesResponseDTO response = new SimulacionFrancesResponseDTO();
+        response.setDatos(datos);
+        response.setCronograma(cronograma);
 
-        // ===== 6. RESPUESTA =====
-        SimulacionFrancesResponseDTO resp = new SimulacionFrancesResponseDTO();
-        resp.setDatos(datos);
-        resp.setCronograma(cronograma);
-        resp.setIndicadores(ind);
+        return response;
 
-        return resp;
+
     }
 
-    // ===== UTILIDADES FINANCIERAS =====
-
-    // Cuota francesa estándar
-    private double frenchPayment(double principal, double rate, int n) {
-        if (n <= 0) return 0.0;
-        if (Math.abs(rate) < 1e-12) {
-            return principal / n;
+    @Override
+    public List<SimulacionFrancesResponseDTO> simularFrancesBatch(List<DatosCronogramaDTO> listaDatos) {
+        List<SimulacionFrancesResponseDTO> resultados = new ArrayList<>();
+        for (DatosCronogramaDTO d : listaDatos) {
+            resultados.add(simularFrances(d));
         }
-        return principal * rate / (1.0 - Math.pow(1.0 + rate, -n));
-    }
-
-    // NPV con tasa periódica
-    private double npv(double rate, double[] cashFlows) {
-        double npv = 0.0;
-        for (int t = 0; t < cashFlows.length; t++) {
-            npv += cashFlows[t] / Math.pow(1.0 + rate, t);
-        }
-        return npv;
-    }
-
-    // IRR usando búsqueda binaria simple
-    private double irr(double[] cashFlows) {
-        double low = -0.9999;
-        double high = 10.0;
-        double mid = 0.0;
-
-        for (int i = 0; i < 100; i++) {
-            mid = (low + high) / 2.0;
-            double value = npv(mid, cashFlows);
-
-            if (value > 0) {
-                low = mid;
-            } else {
-                high = mid;
-            }
-        }
-        return mid;
+        return resultados;
     }
 }
