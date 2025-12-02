@@ -7,6 +7,10 @@ public class DatosCronogramaDTO {
     private int frecuencia_pago;
     private int numero_dias_por_anho;
 
+    // Enlazar con el formulario:
+    private String tipo_gracia;
+    private int meses_gracia;
+
     // ... de los costes/gastos iniciales
     private double costes_notariales;
     private double costes_registrales;
@@ -14,7 +18,7 @@ public class DatosCronogramaDTO {
     private double comision_estudio;
     private double comision_activacion;
 
-    // ... de los costes/gastos periodicos
+    // ... de los costes/gastos periódicos
     private double comision_periodica;
     private double portes;
     private double gastos_administracion;
@@ -37,6 +41,29 @@ public class DatosCronogramaDTO {
     private double total_seguro_riesgo;
     private double total_comisiones_periodicas;
     private double total_portes_y_gastos_adm;
+
+    private int entidadId;   // id_entidad de entidad_financiera
+
+    // NUEVO: id del crédito para jalar datos de CreditoPrestamo
+    private int idCredito;
+
+    // getters / setters
+
+    public int getEntidadId() {
+        return entidadId;
+    }
+
+    public void setEntidadId(int entidadId) {
+        this.entidadId = entidadId;
+    }
+
+    public int getIdCredito() {
+        return idCredito;
+    }
+
+    public void setIdCredito(int idCredito) {
+        this.idCredito = idCredito;
+    }
 
     public double getComision_periodica() {
         return comision_periodica;
@@ -92,6 +119,22 @@ public class DatosCronogramaDTO {
 
     public void setNumero_dias_por_anho(int numero_dias_por_anho) {
         this.numero_dias_por_anho = numero_dias_por_anho;
+    }
+
+    public String getTipo_gracia() {
+        return tipo_gracia;
+    }
+
+    public void setTipo_gracia(String tipo_gracia) {
+        this.tipo_gracia = tipo_gracia;
+    }
+
+    public int getMeses_gracia() {
+        return meses_gracia;
+    }
+
+    public void setMeses_gracia(int meses_gracia) {
+        this.meses_gracia = meses_gracia;
     }
 
     public int getFrecuencia_pago() {
