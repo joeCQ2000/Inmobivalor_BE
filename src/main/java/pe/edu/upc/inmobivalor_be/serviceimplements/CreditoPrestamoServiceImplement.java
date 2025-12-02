@@ -21,6 +21,10 @@ public class CreditoPrestamoServiceImplement implements ICreditoPrestamoService 
     public void insert(CreditoPrestamo creditoPrestamo) {
         iCreditoPrestamoRepository.save(creditoPrestamo);
     }
+    @Override
+    public List<CreditoPrestamo> listarPorEntidad(Integer idEntidad) {
+        return iCreditoPrestamoRepository.listarPorEntidad(idEntidad);
+    }
 }
 
 
