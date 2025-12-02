@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.edu.upc.inmobivalor_be.dtos.*;
 import pe.edu.upc.inmobivalor_be.entities.Cliente;
+import pe.edu.upc.inmobivalor_be.entities.Usuario;
 import pe.edu.upc.inmobivalor_be.repositories.IClienteRepository;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.IClienteService;
 
@@ -55,6 +56,14 @@ public class ClienteServiceImplement implements IClienteService {
             return clienteRepository.save(cliente);
         }
         return null;
+    }
+    @Override
+    public void update(Cliente cliente) {
+        clienteRepository.save(cliente);
+    }
+    @Override
+    public Cliente searchid(int id ) {
+        return clienteRepository.findById(id).orElse(new Cliente());
     }
 
 }

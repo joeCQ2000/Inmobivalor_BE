@@ -39,7 +39,12 @@ public class ClienteController {
     public void actualizar(@RequestBody ClienteDTO dto) {
         ModelMapper m = new ModelMapper();
         Cliente cliente = m.map(dto, Cliente.class);
-        clienteService.actualizarCliente(cliente);
+        clienteService.update(cliente);
     }
-
+    @GetMapping("/{id}")
+    public ClienteDTO listarId(@PathVariable("id") Integer id) {
+        ModelMapper m = new ModelMapper();
+        ClienteDTO dto = m.map(clienteService.searchid(id), ClienteDTO.class);
+        return dto;
+    }
 }
