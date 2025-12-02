@@ -199,12 +199,12 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         double tasaDescPeriodo = Math.pow(1.0 + tasaDescuentoAnual,
                 diasPorPeriodo / (double) diasPorAnho) - 1.0;
 
-        // ========= 5. CRONOGRAMA MÉTODO FRANCÉS =========
+// ========= 5. CRONOGRAMA MÉTODO FRANCÉS =========
         List<CronogramaDTO> cronograma = new ArrayList<>();
 
         double saldo = montoPrestamo;
 
-        // Acumuladores para totales
+// Acumuladores para totales
         double totalIntereses = 0.0;
         double totalAmort = 0.0;
         double totalSegDes = 0.0;
@@ -212,12 +212,14 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         double totalComisiones = 0.0;
         double totalPortesGastos = 0.0;
 
-        // Datos de prepago
-        double prepago = datos.getPrepago();        // ej. 10000
-        int cuotaPrepago = datos.getCuotaPrepago(); // ej. 5
+// Datos de prepago
+        double prepago = datos.getPrepago();
+        int cuotaPrepago = datos.getCuotaPrepago();
 
-        // 5.1. PERÍODO DE GRACIA TOTAL (capitaliza SOLO intereses)
+// ====== MANEJO DE GRACIA (TOTAL / PARCIAL) ======
         int inicioCuotaRegular = 1;
+
+// --- Gracia TOTAL: capitaliza solo intereses ---
         if ("total".equalsIgnoreCase(tipoGracia) && mesesGracia > 0) {
 
             for (int i = 1; i <= mesesGracia; i++) {
@@ -229,13 +231,11 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 double seguroDes = pctSegDesPeriodo * saldo;
                 double seguroRiesgo = seguroRiesgoPeriodo;
 
-                // En gracia total NO se paga cuota ni amortización;
-                // el saldo final = saldo inicial + interes (capitalización)
-                double saldoFinal = saldo + interes;
+                double saldoFinal = saldo + interes; // sube solo por interés
 
                 c.setInteres(interes);
                 c.setAmortizacion(0.0);
-                c.setCuota_incluye_seguro_desgravamen(0.0);
+                c.setCuota_incluye_seguro_desgravamen(0.0); // no hay cuota de capital
                 c.setSaldo_final(saldoFinal);
                 c.setComision(comisionPeriodica);
                 c.setPortes(portes);
@@ -247,7 +247,6 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 c.setPeriodo_gracia("Total");
                 c.setPrepago(0.0);
 
-                // Acumular totales
                 totalIntereses += interes;
                 totalSegDes += seguroDes;
                 totalSegRiesgo += seguroRiesgo;
@@ -255,13 +254,52 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 totalPortesGastos += (portes + gastosAdmin);
 
                 cronograma.add(c);
-
-                // actualizar saldo para el siguiente periodo de gracia
                 saldo = saldoFinal;
             }
 
-            // Después de gracia total, las cuotas francesas se calculan
-            // con el saldo YA capitalizado y sólo con las cuotas restantes
+            inicioCuotaRegular = mesesGracia + 1;
+
+// --- Gracia PARCIAL: se paga interés + seguro, saldo se mantiene ---
+        } else if ("parcial".equalsIgnoreCase(tipoGracia) && mesesGracia > 0) {
+
+            for (int i = 1; i <= mesesGracia; i++) {
+                CronogramaDTO c = new CronogramaDTO();
+                c.setNumero_cuota(i);
+                c.setSaldo_inicial(saldo);
+
+                double interes = saldo * tasaPeriodica;
+                double seguroDes = pctSegDesPeriodo * saldo;
+                double seguroRiesgo = seguroRiesgoPeriodo;
+
+                // cuota que ve el cliente en gracia parcial
+                double cuotaParcial = interes + seguroDes;
+
+                double saldoFinal = saldo; // saldo NO cambia
+
+                c.setInteres(interes);
+                c.setAmortizacion(0.0);                // no se amortiza
+                c.setCuota_incluye_seguro_desgravamen(cuotaParcial);
+                c.setSaldo_final(saldoFinal);
+                c.setComision(comisionPeriodica);
+                c.setPortes(portes);
+                c.setGastos_administracion(gastosAdmin);
+                c.setSeguro_desgravamen(seguroDes);
+                c.setSeguro_riesgo(seguroRiesgo);
+                c.setTea(tea);
+                c.setTasa_periodica(tasaPeriodica);
+                c.setPeriodo_gracia("Parcial");
+                c.setPrepago(0.0);
+
+                totalIntereses += interes;
+                totalSegDes += seguroDes;
+                totalSegRiesgo += seguroRiesgo;
+                totalComisiones += comisionPeriodica;
+                totalPortesGastos += (portes + gastosAdmin);
+
+                cronograma.add(c);
+                // saldo se mantiene igual
+            }
+
             inicioCuotaRegular = mesesGracia + 1;
         }
 
