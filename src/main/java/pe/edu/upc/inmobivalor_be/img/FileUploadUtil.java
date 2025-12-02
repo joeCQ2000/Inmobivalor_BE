@@ -12,7 +12,7 @@ public class FileUploadUtil {
     public  static String saveFile(String uploadDir, String fileName, MultipartFile multipartFile) throws IOException {
 
 
-        Path uploadPath= Paths.get("C:\\Users\\Samuel\\Documents\\UPC_08\\Finanazas\\Finanzas_Proyecto\\Inmobivalor_BE\\src\\main\\resources\\static\\"+uploadDir);
+        Path uploadPath= Paths.get(uploadDir);
         if (!Files.exists(uploadPath)){
             Files.createDirectories(uploadPath);
         }

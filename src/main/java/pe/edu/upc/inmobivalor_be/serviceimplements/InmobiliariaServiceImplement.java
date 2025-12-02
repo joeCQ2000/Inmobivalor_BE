@@ -21,4 +21,30 @@ public class InmobiliariaServiceImplement implements IInmobiliariaService {
     public void insert(Inmobiliaria inmobiliaria) {
         inmobiliariaRepository.save(inmobiliaria);
     }
+
+    @Override
+    public Inmobiliaria searchid(int id) {
+        return inmobiliariaRepository.findById(id).orElse(new Inmobiliaria());
+    }
+
+    @Override
+    public List<Inmobiliaria> buscarInmobiliarias(Boolean estado, String situacion_inmobiliaria, String ubicacion) {
+        if (situacion_inmobiliaria != null && situacion_inmobiliaria.isBlank()) {
+            situacion_inmobiliaria = null;
+        }
+        if (ubicacion != null && ubicacion.isBlank()) {
+            ubicacion = null;
+        }
+
+        return inmobiliariaRepository.buscarInmobiliarias(
+                estado,
+                situacion_inmobiliaria,
+                ubicacion
+        );
+    }
+
+
 }
+
+
+

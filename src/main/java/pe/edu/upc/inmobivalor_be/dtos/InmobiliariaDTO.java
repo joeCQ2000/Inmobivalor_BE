@@ -10,8 +10,8 @@ public class InmobiliariaDTO {
     private int precio;
     private String descripcion;
     private String situacion_inmobiliaria;
-    private boolean estado;
-    private Usuario usuario;
+    private Boolean estado;
+
 
     public int getId_inmobiliaria() {
         return id_inmobiliaria;
@@ -69,19 +69,11 @@ public class InmobiliariaDTO {
         this.situacion_inmobiliaria = situacion_inmobiliaria;
     }
 
-    public boolean isEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(boolean estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
     }
 }

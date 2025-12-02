@@ -29,17 +29,14 @@ public class Inmobiliaria {
     private String situacion_inmobiliaria;
 
     @Column(name = "estado", nullable = false)
-    private boolean estado;
+    private Boolean estado;
 
-    @ManyToOne
-    @JoinColumn(name = "id_usuario")
-    private Usuario usuario;
 
     public Inmobiliaria() {}
 
     public Inmobiliaria(int id_inmobiliaria, String ubicacion, Long imagen, String area, int precio,
                         String descripcion, String situacion_inmobiliaria,
-                        boolean estado, Usuario usuario) {
+                        Boolean estado, Usuario usuario) {
         this.id_inmobiliaria = id_inmobiliaria;
         this.ubicacion = ubicacion;
         this.imagen = imagen;
@@ -48,7 +45,7 @@ public class Inmobiliaria {
         this.descripcion = descripcion;
         this.situacion_inmobiliaria = situacion_inmobiliaria;
         this.estado = estado;
-        this.usuario = usuario;
+
     }
 
     public int getId_inmobiliaria() {
@@ -107,19 +104,13 @@ public class Inmobiliaria {
         this.situacion_inmobiliaria = situacion_inmobiliaria;
     }
 
-    public boolean isEstado() {
+    public Boolean isEstado() {
         return estado;
     }
 
-    public void setEstado(boolean estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
 }
