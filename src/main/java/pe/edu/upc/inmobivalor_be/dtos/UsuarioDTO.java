@@ -26,6 +26,16 @@ public class UsuarioDTO {
     private String telefono;
 
 
+    private Boolean otpRequired = false;
+
+    public Boolean getOtpRequired() {
+        return otpRequired;
+    }
+
+    public void setOtpRequired(Boolean otpRequired) {
+        this.otpRequired = otpRequired;
+    }
+
     public int getId_usuario() {
         return id_usuario;
     }
