@@ -23,7 +23,7 @@ public class Tasa_interesController {
     private ITasa_interesService tasa_interesService;
 
     @GetMapping("/listar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Tasa_interes> listartasainteres() {
         return tasa_interesService.listartasas().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -32,7 +32,7 @@ public class Tasa_interesController {
     }
     
     @PostMapping("/registrar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody Tasa_interesDTO tasa_interesDTO) {
         ModelMapper m = new ModelMapper();
         Tasa_interes tasa_interes = m.map(tasa_interesDTO, Tasa_interes.class);
@@ -40,7 +40,7 @@ public class Tasa_interesController {
     }
     
     @PutMapping("/actualizar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void actualizar(@RequestBody Tasa_interesDTO tasa_interesDTO) {
         ModelMapper m = new ModelMapper();
         Tasa_interes tasa_interes = m.map(tasa_interesDTO, Tasa_interes.class);
@@ -48,13 +48,13 @@ public class Tasa_interesController {
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void eliminar(@PathVariable int id) {
         tasa_interesService.delete(id); // Eliminación lógica
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public Tasa_interes obtenerPorId(@PathVariable int id) {
         return tasa_interesService.findById(id);
     }

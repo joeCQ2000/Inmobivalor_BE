@@ -50,7 +50,7 @@ public class Usuario implements Serializable {
 
     @JsonIgnore
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "id_usuario")
     private List<Rol> roles;
 
     public Usuario() {}

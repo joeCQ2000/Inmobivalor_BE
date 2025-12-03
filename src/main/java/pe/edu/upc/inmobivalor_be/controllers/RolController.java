@@ -18,7 +18,7 @@ public class RolController {
     private IRolService rolService;
 
     @GetMapping("/listar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
     public List<Rol> listarRol() {
         return rolService.listarol().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -26,7 +26,7 @@ public class RolController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR')")
     public void registrar (@RequestBody RolDTO rolDTO) {
         ModelMapper m = new ModelMapper();
         Rol rol = m.map(rolDTO, Rol.class);

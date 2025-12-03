@@ -19,7 +19,7 @@ public class IndicadoresFinancierosController {
     private IIndicadoresFinancierosService indicadoresFinancierosService;
 
     @GetMapping("/listar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<IndicadoresFinancierosDTO> listarIndicadores() {
         return indicadoresFinancierosService.listarIndicadoresFinancieros()
                 .stream()
@@ -31,7 +31,7 @@ public class IndicadoresFinancierosController {
     }
 
     @PostMapping("/registrar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar(@RequestBody IndicadoresFinancierosDTO dto) {
         indicadoresFinancierosService.insert(dto);
     }
