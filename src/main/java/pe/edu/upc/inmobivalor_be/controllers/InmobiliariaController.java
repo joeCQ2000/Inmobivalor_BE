@@ -21,6 +21,7 @@ public class InmobiliariaController {
     private IInmobiliariaService iInmobiliariaService;
 
     @GetMapping("/listar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Inmobiliaria> listarInmobiliaria() {
         return iInmobiliariaService.listarInmobiliarias().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -28,6 +29,7 @@ public class InmobiliariaController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody InmobiliariaDTO inmobiliariaDTO) {
 
         ModelMapper m = new ModelMapper();
