@@ -20,4 +20,8 @@ public class Entidad_financieraServiceImplement implements IEntidad_financieraSe
     public void insert (Entidad_financiera entidad_financiera) {
         entidad_financieraRepository.save(entidad_financiera);
     }
+    public void update(Entidad_financiera entidad_financiera) {
+        // si el id existe, JPA hace UPDATE, si no, INSERT
+        entidad_financieraRepository.save(entidad_financiera);
+    }
 }

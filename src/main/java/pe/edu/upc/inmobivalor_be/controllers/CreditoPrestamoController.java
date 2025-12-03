@@ -19,7 +19,7 @@ public class CreditoPrestamoController {
     private ICreditoPrestamoService creditoPrestamoService;
 
     @GetMapping("/listar")
-    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<CreditoPrestamo> listarCreditoPrestamo() {
         return creditoPrestamoService.listarCreditoPrestamo().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -27,14 +27,14 @@ public class CreditoPrestamoController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
-    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody CreditoPrestamoDTO creditoPrestamoDTO) {
         ModelMapper m = new ModelMapper();
         CreditoPrestamo creditoPrestamo = m.map(creditoPrestamoDTO, CreditoPrestamo.class);
         creditoPrestamoService.insert(creditoPrestamo);
     }
     @GetMapping("/por-entidad/{idEntidad}")
-//@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<CreditoComboDTO> listarCreditosPorEntidad(@PathVariable Integer idEntidad) {
 
         return creditoPrestamoService.listarPorEntidad(idEntidad).stream()

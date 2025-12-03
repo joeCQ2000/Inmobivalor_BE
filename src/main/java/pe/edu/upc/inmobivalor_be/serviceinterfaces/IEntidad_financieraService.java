@@ -8,4 +8,5 @@ import java.util.List;
 public interface IEntidad_financieraService {
     public List<Entidad_financiera> listarentidades();
     public void insert(Entidad_financiera entidad_financiera);
+    public void update(Entidad_financiera entidad_financiera);
 }
