@@ -1,5 +1,4 @@
 package pe.edu.upc.inmobivalor_be.img;
-import org.springframework.beans.factory.annotation.Value;
 import org.apache.coyote.Response;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -24,9 +23,6 @@ import java.util.*;
 @RestController
 public class ImageUploadController {
 
-    @Value("${app.upload-dir}")
-    private String uploadDir;
-
     private final ImageFileRepository imageFileRepository;
 
     public ImageUploadController(ImageFileRepository repo) {
@@ -36,25 +32,31 @@ public class ImageUploadController {
     @GetMapping("/obtener/{imageId}")
     public ResponseEntity<Resource> getImage(@PathVariable Long imageId) {
         try {
+            // Buscar la imagen en la base de datos
             Image_inmo image = imageFileRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("Imagen no encontrada"));
 
+            // Obtener el nombre del archivo de la base de datos
             String fileName = image.getFileName();
 
-            Path filePath = Paths.get(uploadDir).resolve(fileName);
+            // Usar el mismo directorio de almacenamiento de imágenes que se usó en el POST
+            String uploadDir = "C:/uploads/images";  // Este es el mismo nombre que en el POST
+            Path filePath = Paths.get(uploadDir + "/" + fileName);  // Ruta completa
 
+            // Crear un recurso (UrlResource) para la imagen
             Resource resource = new UrlResource(filePath.toUri());
 
-            if (resource.exists() && resource.isReadable()) {
+            // Verificar si el archivo existe y es legible
+            if (resource.exists() || resource.isReadable()) {
                 return ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG) // podrías mejorar esto detectando el tipo
+                        .contentType(MediaType.IMAGE_JPEG)  // O puedes ajustar según el tipo de imagen
                         .body(resource);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();  // Si no se encuentra, 404
             }
 
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();  // Si ocurre un error, 500
         }
     }
 
@@ -64,36 +66,35 @@ public class ImageUploadController {
     public ResponseEntity<List<Image_inmo>> uploadImages(
             @RequestPart("files") MultipartFile[] files
     ) {
+        String uploadDir = "C:/uploads/images";
         List<Image_inmo> savedList = new ArrayList<>();
 
-        try {
-            // Asegura que el directorio exista
-            Path uploadPath = Paths.get(uploadDir);
-            if (!java.nio.file.Files.exists(uploadPath)) {
-                java.nio.file.Files.createDirectories(uploadPath);
-            }
+        for (MultipartFile file : files) {
+            String originalName = file.getOriginalFilename();
+            String ext = originalName.substring(originalName.lastIndexOf(".")); // ej. .jpg
+            String storedName = UUID.randomUUID() + ext;                        // nombre único
 
-            for (MultipartFile file : files) {
-                String originalName = file.getOriginalFilename();
-                String ext = originalName.substring(originalName.lastIndexOf("."));
-                String storedName = UUID.randomUUID() + ext;
-
+            try {
                 // Guarda el archivo físico
-                FileUploadUtil.saveFile(uploadDir, storedName, file);
+                String relativePath = FileUploadUtil.saveFile(uploadDir, storedName, file);
 
-                // Guarda solo el nombre en BD
+                // Guarda SOLO el nombre/ruta en la BD
                 Image_inmo img = new Image_inmo();
                 img.setFileName(storedName);
 
                 savedList.add(imageFileRepository.save(img));
-            }
 
-            return ResponseEntity.ok(savedList);
-        } catch (IOException e) {
-            return ResponseEntity.status(500).build();
+            } catch (IOException e) {
+                return ResponseEntity.status(500).build();
+            }
         }
+
+        return ResponseEntity.ok(savedList);
     }
 
 
 
+
 }
+
+
