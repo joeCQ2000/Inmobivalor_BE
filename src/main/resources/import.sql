@@ -1,4 +1,3 @@
-
 INSERT INTO usuario(id_usuario,contrasenha,username,nombres,apellidos,correo,dni,estado,telefono)
 values(1,'$2a$12$kLQpDlP2gQBhfhM4lEQioOzqSsBkFbc7SY58WUaOiLUN8Zak3MtTC','coco','Miguel','Mendoza','piero@gmail.com','98987878',true,'989878787' );/*comida*/
 INSERT INTO rol(id_rol,user_id,nombre_rol,estado)
@@ -21,8 +20,8 @@ values(1,true,'soles');
 INSERT INTO entidad_financiera(id_entidad,nombre,ruc,direccion,telefono,correo,estado)
 VALUES(1,'BancoAlfrente','20503644968','Tu casa','989878787','tucorreo@gmail.com',true);
 
-INSERT INTO inmobiliaria(id_usuario,id_inmobiliaria,ubicacion,imagen,area,precio,descripcion,situacion_inmobiliaria,estado)
-VALUES(1,1,'TUHOGAR',123,'233',350000,'Es bonito','Listo para la venta',true);
+INSERT INTO inmobiliaria(id_inmobiliaria,ubicacion,imagen,area,precio,descripcion,situacion_inmobiliaria,estado)
+VALUES(1,'TUHOGAR',123,'233',350000,'Es bonito','Listo para la venta',true);
 
 /*INSERT INTO credito_prestamo(id_moneda,id_inmobiliaria,id_entidad,id_cliente,id_credito,plazo_meses,tipo_gracia,monto_bono,fecha_inicio,fecha_fin,capitalizacion,estado,meses_gracia)
 VALUES(1,1,1,1,1,'4','TOTAL',350000,'2025-04-21','2025-11-21','Si',true,4);*/
