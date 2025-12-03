@@ -11,10 +11,10 @@ public class CreditoPrestamo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id_credito;
 
-    @Column(name = "plazo_meses", nullable = false, length = 50)
+    @Column(name = "plazo_meses", length = 50)
     private String plazo_meses;
 
-    @Column(name = "tipo_gracia", nullable = false, length = 50)
+    @Column(name = "tipo_gracia", nullable = true, length = 50)
     private String tipo_gracia;
 
     private int monto_bono;
