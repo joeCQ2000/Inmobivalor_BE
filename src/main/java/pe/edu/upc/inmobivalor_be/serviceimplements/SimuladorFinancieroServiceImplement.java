@@ -4,13 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pe.edu.upc.inmobivalor_be.dtos.CronogramaDTO;
 import pe.edu.upc.inmobivalor_be.dtos.DatosCronogramaDTO;
+import pe.edu.upc.inmobivalor_be.dtos.IndicadoresFinancierosDTO;
 import pe.edu.upc.inmobivalor_be.dtos.SimulacionFrancesResponseDTO;
 import pe.edu.upc.inmobivalor_be.entities.CreditoPrestamo;
 import pe.edu.upc.inmobivalor_be.entities.Entidad_tasa;
 import pe.edu.upc.inmobivalor_be.repositories.ICreditoPrestamoRepository;
 import pe.edu.upc.inmobivalor_be.repositories.IEntidad_tasaRepository;
+import pe.edu.upc.inmobivalor_be.serviceinterfaces.IIndicadoresFinancierosService;
 import pe.edu.upc.inmobivalor_be.serviceinterfaces.ISimuladorFinancieroService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,9 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
 
     @Autowired
     private ICreditoPrestamoRepository creditoPrestamoRepository;
+
+    @Autowired
+    private IIndicadoresFinancierosService indicadoresFinancierosService;
 
     @Override
     public SimulacionFrancesResponseDTO simularFrances(DatosCronogramaDTO datos) {
@@ -50,8 +56,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         }
         datos.setNumero_anhos(numeroAnhos);
 
-        // Tipo y meses de gracia: se prioriza lo enviado por el front,
-        // si viene vacío/0 se toma lo de BD.
+        // Tipo y meses de gracia
         String tipoGracia = datos.getTipo_gracia();
         if (tipoGracia == null || tipoGracia.isBlank()) {
             tipoGracia = credito.getTipo_gracia();
@@ -65,9 +70,9 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         }
 
         // ========= 1. DATOS INGRESADOS =========
-        double precio = datos.getPrecio_venta_activo();               // Precio Venta Activo
-        double pctCuotaInicial = datos.getPorcentaje_cuota_inicial(); // % Cuota Inicial (ej. 0.20)
-        int diasPorAnho = datos.getNumero_dias_por_anho();            // Nº días por año (típico 360)
+        double precio = datos.getPrecio_venta_activo();
+        double pctCuotaInicial = datos.getPorcentaje_cuota_inicial();
+        int diasPorAnho = datos.getNumero_dias_por_anho();
 
         double costesNotariales = datos.getCostes_notariales();
         double costesRegistrales = datos.getCostes_registrales();
@@ -79,15 +84,13 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         double portes = datos.getPortes();
         double gastosAdmin = datos.getGastos_administracion();
 
-        double pctSegDesMensual = datos.getPorcentaje_seguro_desgravamen(); // ej. 0.00045
-        double pctSegRiesgoAnual = datos.getPorcentaje_seguro_riesgo();     // ej. 0.004 (0.40%)
-        double tasaDescuentoAnual = datos.getTasa_descuento();              // ej. 0.27
+        double pctSegDesMensual = datos.getPorcentaje_seguro_desgravamen();
+        double pctSegRiesgoAnual = datos.getPorcentaje_seguro_riesgo();
+        double tasaDescuentoAnual = datos.getTasa_descuento();
 
         // ========= 2. DERIVADOS BÁSICOS =========
-        // Saldo a financiar = PV - PV * %CuotaInicial
         double saldoFinanciar = precio - (precio * pctCuotaInicial);
 
-        // Monto del préstamo = Saldo a financiar + costes iniciales
         double montoPrestamo = saldoFinanciar
                 + costesNotariales
                 + costesRegistrales
@@ -98,7 +101,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         datos.setSaldo_a_financiar(saldoFinanciar);
         datos.setMonto_prestamo(montoPrestamo);
 
-        // ========= 3. TASA DESDE BD (Entidad_tasa -> Tasa_interes) =========
+        // ========= 3. TASA DESDE BD =========
         int entidadId = datos.getEntidadId();
 
         List<Entidad_tasa> entidadTasas = entidadTasaRepository.findActivasByEntidad(entidadId);
@@ -106,14 +109,12 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
             throw new RuntimeException("No se encontró ninguna tasa activa para la entidad " + entidadId);
         }
 
-        // Por ahora tomamos la primera tasa activa de esa entidad
         Entidad_tasa entidadTasa = entidadTasas.get(0);
 
         String tipoTasa = entidadTasa.getTasa().getTipo_tasa();   // "TEA", "TNA", "TN", etc.
 
-        // tasa_pct puede venir como 11 (11%) o 0.11; normalizamos a decimal
         double tasaBruta = entidadTasa.getTasa().getTasa_pct();
-        double tasaAnual = (tasaBruta > 1.0) ? tasaBruta / 100.0 : tasaBruta; // 11 -> 0.11, 0.11 -> 0.11
+        double tasaAnual = (tasaBruta > 1.0) ? tasaBruta / 100.0 : tasaBruta;
 
         boolean esNominal = tipoTasa != null &&
                 (tipoTasa.equalsIgnoreCase("TN")
@@ -124,48 +125,40 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 (tipoTasa.equalsIgnoreCase("TEA")
                         || tipoTasa.toUpperCase().startsWith("TE"));
 
-        // ========= 3.1 FRECUENCIA DE PAGO (días por periodo) =========
+        // ========= 3.1 FRECUENCIA DE PAGO =========
         int frecuenciaPago; // días por periodo de pago
 
         if (esNominal) {
-            // Capitalización SOLO aplica para tasas nominales
             if ("diaria".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 1;       // 1 día
+                frecuenciaPago = 1;
             } else if ("semanal".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 7;       // 7 días
+                frecuenciaPago = 7;
             } else if ("quincenal".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 15;      // 15 días (aprox)
+                frecuenciaPago = 15;
             } else if ("mensual".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 30;      // 30 días
+                frecuenciaPago = 30;
             } else if ("bimestral".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 60;      // 60 días
+                frecuenciaPago = 60;
             } else if ("trimestral".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 90;      // 90 días
+                frecuenciaPago = 90;
             } else if ("semestral".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 180;     // 180 días
+                frecuenciaPago = 180;
             } else if ("anual".equalsIgnoreCase(capitalizacion)) {
-                frecuenciaPago = 360;     // 360 días
+                frecuenciaPago = 360;
             } else {
                 throw new IllegalArgumentException(
                         "Capitalización no soportada para tasa nominal: " + capitalizacion);
             }
         } else if (esEfectiva) {
-            // Para TEA: NO usar capitalización (por definición ya es efectiva anual)
-            // Regla: si es tasa efectiva, por defecto 360,
-            // pero si el front envía frecuencia_pago (>0), se respeta (ej: 90).
             int frecuenciaDesdeFront = datos.getFrecuencia_pago();
             frecuenciaPago = (frecuenciaDesdeFront > 0) ? frecuenciaDesdeFront : 360;
         } else {
             throw new IllegalArgumentException("Tipo de tasa de interés no soportado: " + tipoTasa);
         }
 
-        // Guardamos en el DTO la frecuencia de pago efectiva usada
         datos.setFrecuencia_pago(frecuenciaPago);
 
-        // Nº cuotas por año = días por año / días por periodo
         int nCuotasPorAnho = diasPorAnho / frecuenciaPago;
-
-        // Nº total de cuotas = años * cuotas/año
         int nTotalCuotas = numeroAnhos * nCuotasPorAnho;
 
         double diasPorPeriodo = frecuenciaPago;
@@ -178,33 +171,26 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         double tasaPeriodica;
 
         if (esEfectiva) {
-            // TEA conocida -> tasa periódica según días del periodo
             tea = tasaAnual;
             tasaPeriodica = Math.pow(1.0 + tea, diasPorPeriodo / (double) diasPorAnho) - 1.0;
         } else {
-            // Tasa nominal anual j -> aproximación estándar simple
             double nPeriodosAnho = (double) nCuotasPorAnho;
             tasaPeriodica = tasaAnual / nPeriodosAnho;
             tea = Math.pow(1.0 + tasaPeriodica, nPeriodosAnho) - 1.0;
         }
 
         // ========= 4. SEGUROS Y DESCUENTO POR PERIODO =========
-        // % Seguro desgravamen periodo = %SegDesMensual / 30 * díasPorPeriodo
         double pctSegDesPeriodo = pctSegDesMensual / 30.0 * diasPorPeriodo;
-
-        // Seguro riesgo = %SeguroRiesgo * Precio / NºCuotasPorAño
         double seguroRiesgoPeriodo = pctSegRiesgoAnual * precio / nCuotasPorAnho;
 
-        // (por si luego calculas VAN/TIR)
         double tasaDescPeriodo = Math.pow(1.0 + tasaDescuentoAnual,
                 diasPorPeriodo / (double) diasPorAnho) - 1.0;
 
-// ========= 5. CRONOGRAMA MÉTODO FRANCÉS =========
+        // ========= 5. CRONOGRAMA MÉTODO FRANCÉS =========
         List<CronogramaDTO> cronograma = new ArrayList<>();
 
         double saldo = montoPrestamo;
 
-// Acumuladores para totales
         double totalIntereses = 0.0;
         double totalAmort = 0.0;
         double totalSegDes = 0.0;
@@ -212,14 +198,12 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         double totalComisiones = 0.0;
         double totalPortesGastos = 0.0;
 
-// Datos de prepago
         double prepago = datos.getPrepago();
         int cuotaPrepago = datos.getCuotaPrepago();
 
-// ====== MANEJO DE GRACIA (TOTAL / PARCIAL) ======
         int inicioCuotaRegular = 1;
 
-// --- Gracia TOTAL: capitaliza solo intereses ---
+        // --- Gracia TOTAL ---
         if ("total".equalsIgnoreCase(tipoGracia) && mesesGracia > 0) {
 
             for (int i = 1; i <= mesesGracia; i++) {
@@ -231,11 +215,11 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 double seguroDes = pctSegDesPeriodo * saldo;
                 double seguroRiesgo = seguroRiesgoPeriodo;
 
-                double saldoFinal = saldo + interes; // sube solo por interés
+                double saldoFinal = saldo + interes;
 
                 c.setInteres(interes);
                 c.setAmortizacion(0.0);
-                c.setCuota_incluye_seguro_desgravamen(0.0); // no hay cuota de capital
+                c.setCuota_incluye_seguro_desgravamen(0.0);
                 c.setSaldo_final(saldoFinal);
                 c.setComision(comisionPeriodica);
                 c.setPortes(portes);
@@ -259,7 +243,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
 
             inicioCuotaRegular = mesesGracia + 1;
 
-// --- Gracia PARCIAL: se paga interés + seguro, saldo se mantiene ---
+            // --- Gracia PARCIAL ---
         } else if ("parcial".equalsIgnoreCase(tipoGracia) && mesesGracia > 0) {
 
             for (int i = 1; i <= mesesGracia; i++) {
@@ -271,13 +255,12 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 double seguroDes = pctSegDesPeriodo * saldo;
                 double seguroRiesgo = seguroRiesgoPeriodo;
 
-                // cuota que ve el cliente en gracia parcial
                 double cuotaParcial = interes + seguroDes;
 
-                double saldoFinal = saldo; // saldo NO cambia
+                double saldoFinal = saldo;
 
                 c.setInteres(interes);
-                c.setAmortizacion(0.0);                // no se amortiza
+                c.setAmortizacion(0.0);
                 c.setCuota_incluye_seguro_desgravamen(cuotaParcial);
                 c.setSaldo_final(saldoFinal);
                 c.setComision(comisionPeriodica);
@@ -297,7 +280,6 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 totalPortesGastos += (portes + gastosAdmin);
 
                 cronograma.add(c);
-                // saldo se mantiene igual
             }
 
             inicioCuotaRegular = mesesGracia + 1;
@@ -308,12 +290,6 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
             throw new RuntimeException("No quedan cuotas después del período de gracia.");
         }
 
-        /*
-         * CASO A: sin prepago -> una sola cuota constante.
-         * CASO B: con prepago -> 2 tramos:
-         *   - tramo 1: desde inicioCuotaRegular hasta cuotaPrepago (cuotaAntes)
-         *   - tramo 2: desde cuotaPrepago+1 hasta nTotalCuotas (cuotaDespues)
-         */
         boolean hayPrepagoValido = prepago > 0
                 && cuotaPrepago >= inicioCuotaRegular
                 && cuotaPrepago <= nTotalCuotas;
@@ -333,7 +309,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 c.setSaldo_inicial(saldo);
 
                 double interes = saldo * tasaPeriodica;
-                double seguroDes = pctSegDesPeriodo * saldo;  // usa saldo inicial
+                double seguroDes = pctSegDesPeriodo * saldo;
                 double seguroRiesgo = seguroRiesgoPeriodo;
 
                 double amortizacion = cuotaIncSegDes - interes - seguroDes;
@@ -360,7 +336,6 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 c.setPeriodo_gracia("Ninguno");
                 c.setPrepago(0.0);
 
-                // Acumular totales
                 totalIntereses += interes;
                 totalAmort += amortizacion;
                 totalSegDes += seguroDes;
@@ -374,7 +349,6 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         } else {
             // ====== CASO B: CON PREPAGO ======
 
-            // 1) Cuota base como si NO hubiera prepago (para las cuotas restantes)
             double cuotaAntes = calcularCuotaConstanteConSeguro(
                     saldo,
                     tasaPeriodica,
@@ -382,7 +356,6 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                     cuotasRestantes
             );
 
-            // 1.1) Cuotas regulares ANTES de la cuota de prepago
             for (int i = inicioCuotaRegular; i < cuotaPrepago; i++) {
 
                 CronogramaDTO c = new CronogramaDTO();
@@ -423,7 +396,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 cronograma.add(c);
             }
 
-            // 1.2) Cuota donde se aplica el prepago (ej. cuota 5 en tu Excel)
+            // Cuota donde se aplica el prepago
             {
                 int i = cuotaPrepago;
 
@@ -443,7 +416,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
 
                 c.setInteres(interes);
                 c.setAmortizacion(amortizacion);
-                c.setCuota_incluye_seguro_desgravamen(cuotaAntes); // misma cuota que antes del prepago
+                c.setCuota_incluye_seguro_desgravamen(cuotaAntes);
                 c.setSaldo_final(saldoDespues);
                 c.setComision(comisionPeriodica);
                 c.setPortes(portes);
@@ -456,7 +429,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 c.setPrepago(prepago);
 
                 totalIntereses += interes;
-                totalAmort += amortizacion + prepago; // el prepago también amortiza capital
+                totalAmort += amortizacion + prepago;
                 totalSegDes += seguroDes;
                 totalSegRiesgo += seguroRiesgo;
                 totalComisiones += comisionPeriodica;
@@ -464,11 +437,9 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
 
                 cronograma.add(c);
 
-                // actualizar saldo para el siguiente tramo
                 saldo = saldoDespues;
             }
 
-            // 2) Tramo después del prepago: nueva cuota constante
             int cuotasDespuesPrepago = nTotalCuotas - cuotaPrepago;
             if (cuotasDespuesPrepago > 0 && saldo > 0) {
 
@@ -497,7 +468,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
 
                     c.setInteres(interes);
                     c.setAmortizacion(amortizacion);
-                    c.setCuota_incluye_seguro_desgravamen(cuotaDespues); // nueva cuota ≈ 13 346.48
+                    c.setCuota_incluye_seguro_desgravamen(cuotaDespues);
                     c.setSaldo_final(saldo);
                     c.setComision(comisionPeriodica);
                     c.setPortes(portes);
@@ -529,6 +500,62 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         datos.setTotal_comisiones_periodicas(totalComisiones);
         datos.setTotal_portes_y_gastos_adm(totalPortesGastos);
 
+        // ========= 7. INDICADORES (copiados del Excel) =========
+
+        // 7.1 Flujos tipo columna T (T25:Tn)
+        List<Double> flujos = new ArrayList<>();
+        // T25: monto del préstamo (positivo)
+        flujos.add(montoPrestamo);
+
+        for (CronogramaDTO c : cronograma) {
+
+            double cuotaBase;
+
+            if ("Total".equalsIgnoreCase(c.getPeriodo_gracia())) {
+                // Gracia total: sólo seguro desgravamen
+                cuotaBase = c.getSeguro_desgravamen();
+            } else if ("Parcial".equalsIgnoreCase(c.getPeriodo_gracia())) {
+                // Gracia parcial: interés + seguro desgravamen
+                cuotaBase = c.getInteres() + c.getSeguro_desgravamen();
+            } else {
+                // Sin gracia: cuota completa (interés + amort + seg. desgrav.)
+                cuotaBase = c.getCuota_incluye_seguro_desgravamen();
+            }
+
+            double pagoPeriodo =
+                    cuotaBase
+                            + c.getPrepago()
+                            + c.getSeguro_riesgo()
+                            + c.getComision()
+                            + c.getPortes()
+                            + c.getGastos_administracion();
+
+            double flujo = -pagoPeriodo; // eg. -745.26 en el Excel
+
+            c.setFlujo(flujo);
+            flujos.add(flujo);
+        }
+
+        // 7.2 TIR por periodo (I20 = IRR(T25:Tn))
+        double tirPeriodo = calcularTIR(flujos);
+
+        // 7.3 TCEA de la operación (I21 = (1+I20)^(I6)-1)
+        double tceaOperacion = Math.pow(1.0 + tirPeriodo, nCuotasPorAnho) - 1.0;
+
+        // 7.4 VAN operación (I22 = T25 + NPV(I19,T26:Tn))
+        double vanOperacion = calcularVAN(tasaDescPeriodo, flujos);
+
+        // 7.5 Guardar indicadores en BD
+        IndicadoresFinancierosDTO indicadoresDTO = new IndicadoresFinancierosDTO();
+        indicadoresDTO.setFecha_calculo(LocalDate.now());
+        indicadoresDTO.setId_credito(credito.getId_credito());
+        indicadoresDTO.setTir(tirPeriodo);         // igual al Excel I20 (decimal)
+        indicadoresDTO.setTcea(tceaOperacion);     // igual al Excel I21 (decimal)
+        indicadoresDTO.setTrea(tea);               // aquí puedes ajustar si quieres otro cálculo
+        indicadoresDTO.setVan(vanOperacion);
+
+        indicadoresFinancierosService.insert(indicadoresDTO);
+
         // ========= DEBUG EN CONSOLA =========
         System.out.println("=========== DEBUG SIMULACIÓN FRANCÉS ===========");
         System.out.println("Tipo de tasa (BD)    : " + tipoTasa);
@@ -544,12 +571,16 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         System.out.println("Tipo gracia (DTO)    : " + tipoGracia);
         System.out.println("Periodos de gracia   : " + mesesGracia);
         System.out.println("Monto préstamo       : " + montoPrestamo);
+        System.out.println("TIR periodo          : " + tirPeriodo);
+        System.out.println("TCEA operación       : " + tceaOperacion);
+        System.out.println("VAN operación        : " + vanOperacion);
         System.out.println("===============================================\n");
 
-        // ========= 7. RESPUESTA =========
+        // ========= 8. RESPUESTA =========
         SimulacionFrancesResponseDTO response = new SimulacionFrancesResponseDTO();
         response.setDatos(datos);
         response.setCronograma(cronograma);
+        response.setIndicadores(indicadoresDTO);
 
         return response;
     }
@@ -563,7 +594,7 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
         return resultados;
     }
 
-    // === Helpers privados para calcular la cuota constante con seguro de desgravamen ===
+    // === Helpers privados ================================================
 
     private double simularSaldoFinal(
             double saldoInicial,
@@ -594,14 +625,12 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
             int numeroCuotas) {
 
         double low = 0.0;
-        double high = saldoInicial; // cota inicial
+        double high = saldoInicial;
 
-        // Asegurar que con "high" el saldo final sea negativo (cuota muy alta)
         while (simularSaldoFinal(saldoInicial, tasaPeriodica, pctSegDesPeriodo, numeroCuotas, high) > 0) {
             high *= 1.5;
         }
 
-        // Búsqueda binaria
         for (int iter = 0; iter < 60; iter++) {
             double mid = (low + high) / 2.0;
             double saldoFinal = simularSaldoFinal(saldoInicial, tasaPeriodica, pctSegDesPeriodo, numeroCuotas, mid);
@@ -610,6 +639,69 @@ public class SimuladorFinancieroServiceImplement implements ISimuladorFinanciero
                 low = mid;
             } else {
                 high = mid;
+            }
+        }
+
+        return (low + high) / 2.0;
+    }
+
+    // === VAN / TIR tipo Excel ============================================
+
+    private double calcularNPV(double tasa, List<Double> flujos) {
+        double npv = 0.0;
+        for (int t = 0; t < flujos.size(); t++) {
+            npv += flujos.get(t) / Math.pow(1.0 + tasa, t);
+        }
+        return npv;
+    }
+
+    /**
+     * VAN al estilo I22 = T25 + NPV(I19, T26:Tn)
+     */
+    private double calcularVAN(double tasaPeriodoDescuento, List<Double> flujos) {
+        if (flujos.isEmpty()) return 0.0;
+
+        double flujo0 = flujos.get(0);
+        double npvFuturos = 0.0;
+
+        for (int t = 1; t < flujos.size(); t++) {
+            npvFuturos += flujos.get(t) / Math.pow(1.0 + tasaPeriodoDescuento, t);
+        }
+
+        return flujo0 + npvFuturos;
+    }
+
+    /**
+     * TIR por periodo usando bisección, equivalente a IRR(T25:Tn, 1%)
+     */
+    private double calcularTIR(List<Double> flujos) {
+        double low = -0.9999;
+        double high = 1.0;
+
+        double npvLow = calcularNPV(low, flujos);
+        double npvHigh = calcularNPV(high, flujos);
+
+        int iter = 0;
+        while (npvLow * npvHigh > 0 && iter < 100) {
+            high *= 2.0;
+            npvHigh = calcularNPV(high, flujos);
+            iter++;
+        }
+
+        for (int i = 0; i < 100; i++) {
+            double mid = (low + high) / 2.0;
+            double npvMid = calcularNPV(mid, flujos);
+
+            if (Math.abs(npvMid) < 1e-10) {
+                return mid;
+            }
+
+            if (npvLow * npvMid < 0) {
+                high = mid;
+                npvHigh = npvMid;
+            } else {
+                low = mid;
+                npvLow = npvMid;
             }
         }
 

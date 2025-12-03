@@ -1,7 +1,5 @@
 package pe.edu.upc.inmobivalor_be.dtos;
 
-import pe.edu.upc.inmobivalor_be.entities.CreditoPrestamo;
-
 import java.time.LocalDate;
 
 public class IndicadoresFinancierosDTO {
@@ -9,9 +7,9 @@ public class IndicadoresFinancierosDTO {
     private double van;
     private double tir;
     private LocalDate fecha_calculo;
-    private int tcea;
-    private int trea;
-    private CreditoPrestamo id_credito;
+    private double tcea;
+    private double trea;
+    private int id_credito;   // SOLO el id del crédito
 
     public int getId_indicador() {
         return id_indicador;
@@ -45,27 +43,27 @@ public class IndicadoresFinancierosDTO {
         this.fecha_calculo = fecha_calculo;
     }
 
-    public int getTcea() {
+    public double getTcea() {
         return tcea;
     }
 
-    public void setTcea(int tcea) {
+    public void setTcea(double tcea) {
         this.tcea = tcea;
     }
 
-    public int getTrea() {
+    public double getTrea() {
         return trea;
     }
 
-    public void setTrea(int trea) {
+    public void setTrea(double trea) {
         this.trea = trea;
     }
 
-    public CreditoPrestamo getId_credito() {
+    public int getId_credito() {
         return id_credito;
     }
 
-    public void setId_credito(CreditoPrestamo id_credito) {
+    public void setId_credito(int id_credito) {
         this.id_credito = id_credito;
     }
 }
