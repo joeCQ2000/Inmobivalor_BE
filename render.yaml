@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: inmobivalor-backend
+    env: java
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/Inmobivalor_BE-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xmx512m
+      - key: PORT
+        value: 8081
