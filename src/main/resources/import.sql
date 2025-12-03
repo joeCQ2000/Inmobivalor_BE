@@ -63,3 +63,5 @@ VALUES
         4                 -- 4 meses de gracia dentro de 120 meses de plazo
     );
 
+INSERT INTO entidad_tasa(id_entidad,id_tasa)
+VALUES(1,1);

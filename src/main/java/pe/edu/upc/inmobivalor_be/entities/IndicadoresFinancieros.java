@@ -17,8 +17,8 @@ public class IndicadoresFinancieros {
     @Column(name = "fecha_calculo", nullable = false)
     private LocalDate fecha_calculo;
 
-    private int tcea;
-    private int trea;
+    private double tcea;
+    private double trea;
 
     @ManyToOne
     @JoinColumn(name = "id_credito")
@@ -28,7 +28,7 @@ public class IndicadoresFinancieros {
 
     }
 
-    public IndicadoresFinancieros(int id_indicador, double van, double tir, LocalDate fecha_calculo, int tcea, int trea, CreditoPrestamo id_credito) {
+    public IndicadoresFinancieros(int id_indicador, double van, double tir, LocalDate fecha_calculo, double tcea, double trea, CreditoPrestamo id_credito) {
         this.id_indicador = id_indicador;
         this.van = van;
         this.tir = tir;
@@ -70,19 +70,19 @@ public class IndicadoresFinancieros {
         this.fecha_calculo = fecha_calculo;
     }
 
-    public int getTcea() {
+    public double getTcea() {
         return tcea;
     }
 
-    public void setTcea(int tcea) {
+    public void setTcea(double tcea) {
         this.tcea = tcea;
     }
 
-    public int getTrea() {
+    public double getTrea() {
         return trea;
     }
 
-    public void setTrea(int trea) {
+    public void setTrea(double trea) {
         this.trea = trea;
     }
 
