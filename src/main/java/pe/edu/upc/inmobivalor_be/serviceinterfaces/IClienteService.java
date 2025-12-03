@@ -2,6 +2,7 @@ package pe.edu.upc.inmobivalor_be.serviceinterfaces;
 
 import pe.edu.upc.inmobivalor_be.dtos.*;
 import pe.edu.upc.inmobivalor_be.entities.Cliente;
+import pe.edu.upc.inmobivalor_be.entities.Usuario;
 
 import java.util.List;
 
@@ -14,6 +15,8 @@ public interface IClienteService {
     public List<ClienteBonoAptoDTO>ClienteBonoApto();
     public List<BusquedaClienteDTO>BusquedaCliente(String busqueda);
     public Cliente actualizarCliente(Cliente cliente);
+    public Cliente searchid(int id);
+    public void update(Cliente cliente);
 
 
 }

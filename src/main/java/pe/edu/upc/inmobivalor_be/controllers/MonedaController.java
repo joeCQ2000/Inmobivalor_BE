@@ -18,17 +18,39 @@ public class MonedaController {
     private IMonedaService monedaService;
 
     @GetMapping("/listar")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Moneda> listarmoneda() {
         return monedaService.listarmonedas().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
             return modelMapper.map(x, Moneda.class);
         }).collect(Collectors.toList());
     }
+    
     @PostMapping("/registrar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody MonedaDTO monedaDTO) {
         ModelMapper m = new ModelMapper();
         Moneda moneda = m.map(monedaDTO, Moneda.class);
         monedaService.insert(moneda);
+    }
+    
+    @PutMapping("/actualizar")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    public void actualizar(@RequestBody MonedaDTO monedaDTO) {
+        ModelMapper m = new ModelMapper();
+        Moneda moneda = m.map(monedaDTO, Moneda.class);
+        monedaService.update(moneda);
+    }
+    
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    public void eliminar(@PathVariable int id) {
+        monedaService.delete(id); // Eliminación lógica
+    }
+    
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    public Moneda obtenerPorId(@PathVariable int id) {
+        return monedaService.findById(id);
     }
 }

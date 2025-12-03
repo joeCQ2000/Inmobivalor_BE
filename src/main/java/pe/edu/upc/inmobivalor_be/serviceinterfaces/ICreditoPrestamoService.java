@@ -6,4 +6,5 @@ import java.util.List;
 public interface ICreditoPrestamoService {
     public List<CreditoPrestamo> listarCreditoPrestamo();
     public void insert(CreditoPrestamo creditoPrestamo);
+    public List<CreditoPrestamo> listarPorEntidad(Integer idEntidad);
 }

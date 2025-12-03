@@ -47,6 +47,24 @@ public class DatosCronogramaDTO {
     // NUEVO: id del crédito para jalar datos de CreditoPrestamo
     private int idCredito;
 
+    private double prepago;       // monto de prepago (ej. 10000)
+    private int cuotaPrepago;     // número de cuota donde se aplica el prepago (ej. 5)
+
+    public double getPrepago() {
+        return prepago;
+    }
+
+    public void setPrepago(double prepago) {
+        this.prepago = prepago;
+    }
+
+    public int getCuotaPrepago() {
+        return cuotaPrepago;
+    }
+
+    public void setCuotaPrepago(int cuotaPrepago) {
+        this.cuotaPrepago = cuotaPrepago;
+    }
     // getters / setters
 
     public int getEntidadId() {

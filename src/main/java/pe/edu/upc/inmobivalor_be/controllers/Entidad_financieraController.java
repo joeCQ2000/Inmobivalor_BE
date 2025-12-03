@@ -21,7 +21,7 @@ public class Entidad_financieraController {
     private IEntidad_financieraService entidad_financieraService;
 
     @GetMapping("/listar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public List<Entidad_financiera> listarentidades() {
         return entidad_financieraService.listarentidades().stream().map(x -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -29,7 +29,7 @@ public class Entidad_financieraController {
         }).collect(Collectors.toList());
     }
     @PostMapping("/registrar")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
+    //@PreAuthorize("hasAnyAuthority('ADMINISTRADOR', 'ASESOR_FINANCIERO')")
     public void registrar (@RequestBody Entidades_financieraDTO entidades_financieraDTO) {
         ModelMapper m = new ModelMapper();
         Entidad_financiera entidad_financiera = m.map(entidades_financieraDTO, Entidad_financiera.class);
